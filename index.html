@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Agendamiento de Prácticas</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for calendar grid */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-full font-sans text-slate-800 flex flex-col antialiased">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-md flex items-center justify-center">
+                        <i class="ph-bold ph-flask text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900 leading-tight">LabScheduler Pro</h1>
+                        <p class="text-xs text-slate-500 font-medium">Reserva de Laboratorios y Prácticas de Campo</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="btnOpenNewModal" onclick="openModal()" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all transform active:scale-95">
+                        <i class="ph-bold ph-plus-circle text-lg"></i>
+                        <span>Agendar Práctica</span>
+                    </button>
+                    <button onclick="exportData()" class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl font-medium text-sm transition-colors" title="Exportar CSV">
+                        <i class="ph-bold ph-download-simple text-lg"></i>
+                        <span class="hidden md:inline">Exportar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- System Notification Banner / Rules Banner -->
+        <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-sm text-blue-900 shadow-sm">
+            <div class="flex items-start gap-3">
+                <div class="p-2 bg-blue-100 rounded-xl text-blue-700 mt-0.5 md:mt-0 flex-shrink-0">
+                    <i class="ph-fill ph-info text-xl"></i>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-semibold text-blue-950">Lineamientos Obligatorios para Agendamiento</h3>
+                    <div class="flex flex-col sm:flex-row sm:gap-6 text-xs text-blue-800">
+                        <span class="flex items-center gap-1.5"><i class="ph-bold ph-clock"></i> <strong>General:</strong> Mínimo 48 horas de anticipación.</span>
+                        <span class="flex items-center gap-1.5"><i class="ph-bold ph-plant"></i> <strong>Material Fresco:</strong> Solicitud previa con fecha límite el <u>miércoles a las 12:00 PM</u> de la semana anterior.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-xs bg-white/80 border border-blue-200 px-3 py-1.5 rounded-lg font-medium text-slate-600 flex items-center gap-2 self-end md:self-auto">
+                <i class="ph-bold ph-calendar text-brand-600"></i>
+                <span>Simulación Hoy: <strong id="lblCurrentTime" class="text-slate-900"></strong></span>
+            </div>
+        </div>
+
+        <!-- Dashboard Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="p-3 bg-brand-50 text-brand-600 rounded-xl">
+                    <i class="ph-bold ph-calendar-check text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Total Semana</p>
+                    <h4 id="statTotal" class="text-2xl font-bold text-slate-800">0</h4>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <i class="ph-bold ph-check-circle text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Aprobadas</p>
+                    <h4 id="statApproved" class="text-2xl font-bold text-slate-800">0</h4>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                    <i class="ph-bold ph-hourglass-medium text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Pendientes</p>
+                    <h4 id="statPending" class="text-2xl font-bold text-slate-800">0</h4>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                    <i class="ph-bold ph-warning-circle text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Rechazadas</p>
+                    <h4 id="statRejected" class="text-2xl font-bold text-slate-800">0</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Tabs & Views -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Header Controls -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <!-- Tabs -->
+                <div class="flex items-center bg-slate-100 p-1 rounded-xl w-fit">
+                    <button id="btnTabCalendar" onclick="switchTab('calendar')" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all shadow-sm bg-white text-slate-800">
+                        <i class="ph-bold ph-calendar-blank mr-1.5"></i> Vista Calendario
+                    </button>
+                    <button id="btnTabList" onclick="switchTab('list')" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+                        <i class="ph-bold ph-list-bullets mr-1.5"></i> Listado Solicitudes
+                    </button>
+                </div>
+
+                <!-- Calendar Week Controls / Filters -->
+                <div class="flex flex-wrap items-center gap-3" id="calendarControls">
+                    <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1">
+                        <button onclick="changeWeek(-1)" class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">
+                            <i class="ph-bold ph-caret-left"></i>
+                        </button>
+                        <span id="lblWeekRange" class="px-3 text-xs font-semibold text-slate-700 min-w-[140px] text-center">Cargando...</span>
+                        <button onclick="changeWeek(1)" class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">
+                            <i class="ph-bold ph-caret-right"></i>
+                        </button>
+                    </div>
+                    <button onclick="resetToCurrentWeek()" class="px-3 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors">
+                        Hoy
+                    </button>
+                </div>
+
+                <!-- List Filters (Hidden by default) -->
+                <div class="flex items-center gap-2 hidden" id="listControls">
+                    <select id="filterStatus" onchange="renderList()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="ALL">Todos los Estados</option>
+                        <option value="APROBADA">Aprobadas</option>
+                        <option value="PENDIENTE">Pendientes</option>
+                        <option value="RECHAZADA">Rechazadas</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tab Content 1: Calendar View -->
+            <div id="viewCalendar" class="p-4 sm:p-5 overflow-x-auto">
+                <div class="min-w-[800px]">
+                    <!-- Weekday Headers -->
+                    <div class="grid grid-cols-6 gap-2 mb-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Lunes <span id="hdrDay0" class="block font-normal text-slate-400"></span></div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Martes <span id="hdrDay1" class="block font-normal text-slate-400"></span></div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Miércoles <span id="hdrDay2" class="block font-normal text-slate-400"></span></div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Jueves <span id="hdrDay3" class="block font-normal text-slate-400"></span></div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Viernes <span id="hdrDay4" class="block font-normal text-slate-400"></span></div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Sábado <span id="hdrDay5" class="block font-normal text-slate-400"></span></div>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div id="calendarGrid" class="grid grid-cols-6 gap-2 min-h-[420px]">
+                        <!-- Dynamic cells injected via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content 2: List View -->
+            <div id="viewList" class="hidden overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-6 py-3.5">Profesor & Asignatura</th>
+                            <th class="px-6 py-3.5">Fecha & Hora</th>
+                            <th class="px-6 py-3.5">Alumnos / Formato</th>
+                            <th class="px-6 py-3.5">Mat. Fresco</th>
+                            <th class="px-6 py-3.5">Estado</th>
+                            <th class="px-6 py-3.5 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listTableBody" class="divide-y divide-slate-100">
+                        <!-- Dynamic List Items -->
+                    </tbody>
+                </table>
+                <div id="emptyListState" class="hidden p-8 text-center text-slate-400">
+                    <i class="ph-light ph-folder-open text-4xl mb-2 block"></i>
+                    <p class="font-medium">No hay solicitudes registradas con estos filtros.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- AGENDAR PRACTICA MODAL -->
+    <div id="bookingModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden transform scale-95 transition-transform duration-200 flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-brand-100 text-brand-600 rounded-xl">
+                        <i class="ph-bold ph-calendar-plus text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-lg">Agendar Nueva Práctica</h3>
+                        <p class="text-xs text-slate-500">Diligencie todos los campos requeridos</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <form id="bookingForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-5 text-sm">
+                
+                <!-- Profesor & Asignatura -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nombre del Profesor *</label>
+                        <div class="relative">
+                            <i class="ph-bold ph-user-tier absolute left-3.5 top-3 text-slate-400 text-base"></i>
+                            <input type="text" id="profesor" required placeholder="Ej. Dr. Roberto Gómez" class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-medium text-slate-800">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Asignatura *</label>
+                        <div class="relative">
+                            <i class="ph-bold ph-book-open absolute left-3.5 top-3 text-slate-400 text-base"></i>
+                            <input type="text" id="asignatura" required placeholder="Ej. Bioquímica Avanzada" class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-medium text-slate-800">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fecha y Hora -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Fecha y Hora de Práctica *</label>
+                        <div class="relative">
+                            <input type="datetime-local" id="fechaHora" required onchange="validateRuleRealtime()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-medium text-slate-800">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cantidad de Alumnos *</label>
+                        <div class="relative">
+                            <i class="ph-bold ph-users-three absolute left-3.5 top-3 text-slate-400 text-base"></i>
+                            <input type="number" id="alumnos" min="1" max="100" required placeholder="Ej. 24" class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-medium text-slate-800">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formato de Práctica -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Formato / Modalidad *</label>
+                    <select id="formato" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-medium text-slate-800">
+                        <option value="Individual">Individual</option>
+                        <option value="Por Parejas">Por Parejas (2 integrantes)</option>
+                        <option value="Equipos de 3">Equipos de 3 personas</option>
+                        <option value="Equipos de 4-5">Equipos de 4 a 5 personas</option>
+                        <option value="Demostrativa">Demostrativa / Grupal (Profesor)</option>
+                    </select>
+                </div>
+
+                <!-- Material Fresco Toggle Box -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-plant text-emerald-600 text-lg"></i>
+                            <span class="font-bold text-slate-800 text-sm">¿Requiere Material Fresco o Perecedero?</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="materialFresco" onchange="validateRuleRealtime()" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
+                    <p class="text-xs text-slate-500">Tejidos biológicos, cultivos vivos, reactivos especiales de corta vida util, etc. Requiere pedido el miércoles anterior antes de las 12:00 PM.</p>
+                </div>
+
+                <!-- Dynamic Realtime Validation Feedback Banner -->
+                <div id="validationFeedback" class="p-3.5 rounded-xl text-xs font-medium border hidden transition-all flex items-start gap-2.5">
+                    <i id="validationIcon" class="ph-bold text-lg mt-0.5"></i>
+                    <div id="validationText" class="space-y-0.5"></div>
+                </div>
+
+                <!-- Materiales y Reactivos -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Descripción de Materiales / Reactivos *</label>
+                    <textarea id="materiales" rows="3" required placeholder="Detalle matraces, reactivos (ej. H2SO4 1M), muestras biológicas, etc." class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-medium text-slate-800"></textarea>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btnSubmitForm" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold shadow-md transition-all">
+                        Confirmar y Agendar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DETALLE PRACTICA MODAL -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-white rounded-3xl shadow-xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-200 flex flex-col">
+            <div class="p-6 bg-slate-50 border-b border-slate-100 flex items-start justify-between">
+                <div>
+                    <span id="detailBadge" class="inline-block px-2.5 py-1 text-xs font-bold rounded-lg mb-2"></span>
+                    <h3 id="detailSubject" class="text-xl font-bold text-slate-900"></h3>
+                    <p id="detailProf" class="text-xs font-medium text-slate-500"></p>
+                </div>
+                <button onclick="closeDetailModal()" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 rounded-xl transition-colors">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4 text-sm">
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                    <div>
+                        <span class="text-xs text-slate-400 font-medium block">Fecha & Hora</span>
+                        <span id="detailDate" class="font-bold text-slate-800 text-xs sm:text-sm"></span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 font-medium block">Alumnos / Formato</span>
+                        <span id="detailStudents" class="font-bold text-slate-800 text-xs sm:text-sm"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="text-xs text-slate-400 font-medium block mb-1">Material Fresco Solicitado</span>
+                    <div id="detailFreshBadge" class="flex items-center gap-2 font-semibold text-xs"></div>
+                </div>
+
+                <div>
+                    <span class="text-xs text-slate-400 font-medium block mb-1">Lista de Materiales y Reactivos</span>
+                    <div id="detailMaterials" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 whitespace-pre-wrap"></div>
+                </div>
+
+                <div id="detailRejectReasonContainer" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800">
+                    <strong class="block mb-0.5">Motivo de Incumplimiento de Regla:</strong>
+                    <span id="detailRejectReason"></span>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                <button id="btnDeleteDetail" onclick="" class="text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5">
+                    <i class="ph-bold ph-trash"></i> Eliminar Práctica
+                </button>
+                <button onclick="closeDetailModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-colors">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert / Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Application Logic -->
+    <script>
+        // Data State
+        let currentWeekOffset = 0; // 0 = current week
+        let currentTab = 'calendar';
+        let bookings = [];
+
+        // Reference fixed time for consistent testing (Current Simulated Time)
+        // Set to current date
+        const NOW = new Date();
+
+        // Sample initial dataset
+        const INITIAL_BOOKINGS = [
+            {
+                id: '1',
+                profesor: 'Dra. Elena Rostova',
+                asignatura: 'Microbiología II',
+                fechaHora: getRelativeDate(2, 10, 0), // 2 days from now at 10:00
+                alumnos: 28,
+                formato: 'Por Parejas',
+                materialFresco: true,
+                materiales: 'Cajas Petri con Agar Nutritivo, Muestras de agua estancada, Asas de siembra.',
+                estado: 'APROBADA',
+                motivo: 'Cumple con anticipación de material fresco'
+            },
+            {
+                id: '2',
+                profesor: 'Ing. Carlos Mendoza',
+                asignatura: 'Física Clásica',
+                fechaHora: getRelativeDate(3, 14, 30), // 3 days from now
+                alumnos: 35,
+                formato: 'Equipos de 4-5',
+                materialFresco: false,
+                materiales: 'Cronómetros digitales, Rieles de flexión, Masas calibradas de 100g y 500g.',
+                estado: 'APROBADA',
+                motivo: 'Cumple con regla general de 48h'
+            }
+        ];
+
+        // Helper to generate dynamic dates relative to current moment
+        function getRelativeDate(dayOffset, hours, minutes) {
+            const d = new Date(NOW);
+            d.setDate(d.getDate() + dayOffset);
+            d.setHours(hours, minutes, 0, 0);
+            return d.toISOString();
+        }
+
+        // Initialize App
+        window.onload = function() {
+            // Load from LocalStorage or seed defaults
+            const saved = localStorage.getItem('lab_bookings_data');
+            if (saved) {
+                try {
+                    bookings = JSON.parse(saved);
+                } catch(e) {
+                    bookings = INITIAL_BOOKINGS;
+                }
+            } else {
+                bookings = INITIAL_BOOKINGS;
+                saveBookings();
+            }
+
+            // Set current time banner
+            document.getElementById('lblCurrentTime').innerText = NOW.toLocaleString('es-ES', { 
+                weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+            });
+
+            // Set datetime-local default in modal to 3 days ahead
+            const defaultDate = new Date(NOW);
+            defaultDate.setDate(defaultDate.getDate() + 3);
+            defaultDate.setHours(9, 0, 0, 0);
+            document.getElementById('fechaHora').value = defaultDate.toISOString().slice(0,16);
+
+            updateDashboardStats();
+            renderView();
+        }
+
+        function saveBookings() {
+            localStorage.setItem('lab_bookings_data', JSON.stringify(bookings));
+            updateDashboardStats();
+        }
+
+        // --- Core Rules Logic Validation ---
+        /*
+          REGLAS:
+          1. Regla General: Min 48 Horas de anticipación respecto al momento actual.
+          2. Regla Material Fresco: Si requiere material fresco, debe pedirse para la semana solicitada ANTES del MIÉRCOLES a las 12:00 PM de la SEMANA PREVIA.
+        */
+        function validateBookingRules(selectedDateStr, isFresh) {
+            if (!selectedDateStr) return { valid: false, reason: 'Seleccione una fecha y hora válidas.' };
+
+            const practiceDate = new Date(selectedDateStr);
+            const now = new Date(NOW);
+
+            // 1. General Rule: 48 Hours check
+            const diffHours = (practiceDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+            if (diffHours < 48) {
+                return {
+                    valid: false,
+                    reason: `La práctica debe agendarse con al menos 48 horas de anticipación. (Faltan ${Math.max(0, diffHours.toFixed(1))}h).`
+                };
+            }
+
+            // 2. Material Fresco Rule
+            if (isFresh) {
+                // Determine the Wednesday 12:00 PM deadline of the week PRIOR to the practice
+                // First, find the Monday of the practice week
+                const practiceDay = practiceDate.getDay(); // 0: Sun, 1: Mon...
+                const distToMon = (practiceDay === 0 ? -6 : 1 - practiceDay);
+                const mondayOfPracticeWeek = new Date(practiceDate);
+                mondayOfPracticeWeek.setDate(practiceDate.getDate() + distToMon);
+                mondayOfPracticeWeek.setHours(0,0,0,0);
+
+                // Previous Wednesday is 5 days before that Monday
+                const deadlineWednesday = new Date(mondayOfPracticeWeek);
+                deadlineWednesday.setDate(mondayOfPracticeWeek.getDate() - 5);
+                deadlineWednesday.setHours(12, 0, 0, 0); // 12:00 PM
+
+                if (now > deadlineWednesday) {
+                    const deadlineFormatted = deadlineWednesday.toLocaleString('es-ES', { 
+                        weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+                    });
+                    return {
+                        valid: false,
+                        reason: `Por requerir material fresco, la fecha límite de solicitud fue el ${deadlineFormatted}.`
+                    };
+                }
+            }
+
+            return {
+                valid: true,
+                reason: isFresh 
+                    ? 'Cumple con la anticipación mínima y la fecha límite de material fresco.' 
+                    : 'Cumple perfectamente con la norma de 48 horas de anticipación.'
+            };
+        }
+
+        // Realtime feedback in modal form
+        function validateRuleRealtime() {
+            const dateVal = document.getElementById('fechaHora').value;
+            const isFresh = document.getElementById('materialFresco').checked;
+            const feedbackEl = document.getElementById('validationFeedback');
+            const iconEl = document.getElementById('validationIcon');
+            const textEl = document.getElementById('validationText');
+            const submitBtn = document.getElementById('btnSubmitForm');
+
+            if (!dateVal) {
+                feedbackEl.classList.add('hidden');
+                return;
+            }
+
+            const result = validateBookingRules(dateVal, isFresh);
+            feedbackEl.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800', 'bg-rose-50', 'border-rose-200', 'text-rose-800');
+
+            if (result.valid) {
+                feedbackEl.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                iconEl.className = 'ph-bold ph-check-circle text-emerald-600 text-lg mt-0.5';
+                textEl.innerHTML = `<strong>Práctica Válida:</strong> ${result.reason}`;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                feedbackEl.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-800');
+                iconEl.className = 'ph-bold ph-warning-circle text-rose-600 text-lg mt-0.5';
+                textEl.innerHTML = `<strong>Restricción de Tiempo:</strong> ${result.reason}`;
+                // Submit stays enabled so form can show formal error modal/toast if tried
+            }
+        }
+
+        // Dashboard statistics
+        function updateDashboardStats() {
+            const total = bookings.length;
+            const approved = bookings.filter(b => b.estado === 'APROBADA').length;
+            const pending = bookings.filter(b => b.estado === 'PENDIENTE').length;
+            const rejected = bookings.filter(b => b.estado === 'RECHAZADA').length;
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statApproved').innerText = approved;
+            document.getElementById('statPending').innerText = pending;
+            document.getElementById('statRejected').innerText = rejected;
+        }
+
+        // --- UI Navigation & Switching ---
+        function switchTab(tab) {
+            currentTab = tab;
+            const btnCal = document.getElementById('btnTabCalendar');
+            const btnList = document.getElementById('btnTabList');
+            const viewCal = document.getElementById('viewCalendar');
+            const viewList = document.getElementById('viewList');
+            const calControls = document.getElementById('calendarControls');
+            const listControls = document.getElementById('listControls');
+
+            if (tab === 'calendar') {
+                btnCal.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all shadow-sm bg-white text-slate-800";
+                btnList.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900";
+                viewCal.classList.remove('hidden');
+                viewList.classList.add('hidden');
+                calControls.classList.remove('hidden');
+                listControls.classList.add('hidden');
+                renderCalendar();
+            } else {
+                btnList.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all shadow-sm bg-white text-slate-800";
+                btnCal.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900";
+                viewList.classList.remove('hidden');
+                viewCal.classList.add('hidden');
+                listControls.classList.remove('hidden');
+                calControls.classList.add('hidden');
+                renderList();
+            }
+        }
+
+        function renderView() {
+            if (currentTab === 'calendar') renderCalendar();
+            else renderList();
+        }
+
+        // Week Navigation Helpers
+        function changeWeek(direction) {
+            currentWeekOffset += direction;
+            renderCalendar();
+        }
+
+        function resetToCurrentWeek() {
+            currentWeekOffset = 0;
+            renderCalendar();
+        }
+
+        function getMondayOfWeek(offsetWeeks) {
+            const d = new Date(NOW);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+            const monday = new Date(d.setDate(diff));
+            monday.setDate(monday.getDate() + (offsetWeeks * 7));
+            monday.setHours(0,0,0,0);
+            return monday;
+        }
+
+        // Render Calendar Grid
+        function renderCalendar() {
+            const monday = getMondayOfWeek(currentWeekOffset);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+
+            // Update Week Label Header
+            const options = { month: 'short', day: 'numeric' };
+            document.getElementById('lblWeekRange').innerText = `${monday.toLocaleDateString('es-ES', options)} - ${sunday.toLocaleDateString('es-ES', options)}`;
+
+            // Update Column Headers Date Labels
+            for (let i = 0; i < 6; i++) { // Mon - Sat
+                const colDate = new Date(monday);
+                colDate.setDate(monday.getDate() + i);
+                document.getElementById(`hdrDay${i}`).innerText = colDate.toLocaleDateString('es-ES', { month: 'numeric', day: 'numeric' });
+            }
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            // Render columns for Mon to Sat
+            for (let dayIdx = 0; dayIdx < 6; dayIdx++) {
+                const colDate = new Date(monday);
+                colDate.setDate(monday.getDate() + dayIdx);
+
+                const colEl = document.createElement('div');
+                colEl.className = "bg-slate-50/50 border border-slate-200/60 rounded-xl p-2 space-y-2 min-h-[380px] flex flex-col";
+
+                // Filter bookings for this exact day
+                const dayBookings = bookings.filter(b => {
+                    const bDate = new Date(b.fechaHora);
+                    return bDate.toDateString() === colDate.toDateString();
+                });
+
+                if (dayBookings.length === 0) {
+                    colEl.innerHTML = `<div class="flex-1 flex items-center justify-center text-slate-300 text-xs italic">Sin prácticas</div>`;
+                } else {
+                    dayBookings.forEach(b => {
+                        const bDate = new Date(b.fechaHora);
+                        const timeStr = bDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+                        let bgStyle = "bg-white border-slate-200 hover:border-brand-300";
+                        let statusDot = "bg-amber-400";
+
+                        if (b.estado === 'APROBADA') statusDot = "bg-emerald-500";
+                        if (b.estado === 'RECHAZADA') {
+                            bgStyle = "bg-rose-50/50 border-rose-200 hover:border-rose-300";
+                            statusDot = "bg-rose-500";
+                        }
+
+                        const card = document.createElement('div');
+                        card.onclick = () => openDetailModal(b.id);
+                        card.className = `${bgStyle} border rounded-xl p-2.5 shadow-sm hover:shadow transition-all cursor-pointer space-y-1.5 text-xs`;
+                        
+                        card.innerHTML = `
+                            <div class="flex items-center justify-between font-semibold text-slate-800">
+                                <span class="flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full ${statusDot}"></span>
+                                    ${timeStr}
+                                </span>
+                                ${b.materialFresco ? '<span title="Material fresco"><i class="ph-bold ph-plant text-emerald-600"></i></span>' : ''}
+                            </div>
+                            <div class="font-bold text-slate-900 truncate">${escapeHtml(b.asignatura)}</div>
+                            <div class="text-slate-500 truncate text-[11px]"><i class="ph-bold ph-user-tier mr-1"></i>${escapeHtml(b.profesor)}</div>
+                        `;
+                        colEl.appendChild(card);
+                    });
+                }
+
+                grid.appendChild(colEl);
+            }
+        }
+
+        // Render Request Table List
+        function renderList() {
+            const filter = document.getElementById('filterStatus').value;
+            const tbody = document.getElementById('listTableBody');
+            const emptyState = document.getElementById('emptyListState');
+            tbody.innerHTML = '';
+
+            let filtered = bookings;
+            if (filter !== 'ALL') {
+                filtered = bookings.filter(b => b.estado === filter);
+            }
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(b => {
+                const bDate = new Date(b.fechaHora);
+                const dateStr = bDate.toLocaleString('es-ES', { 
+                    weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                });
+
+                let statusBadge = '';
+                if (b.estado === 'APROBADA') statusBadge = '<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">Aprobada</span>';
+                else if (b.estado === 'PENDIENTE') statusBadge = '<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">Pendiente</span>';
+                else statusBadge = '<span class="bg-rose-100 text-rose-800 text-xs px-2.5 py-1 rounded-full font-bold">Rechazada</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-900">${escapeHtml(b.asignatura)}</div>
+                        <div class="text-xs text-slate-500">${escapeHtml(b.profesor)}</div>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-slate-700">${dateStr}</td>
+                    <td class="px-6 py-4">
+                        <span class="font-semibold text-slate-800">${b.alumnos} alumnos</span>
+                        <div class="text-xs text-slate-400">${escapeHtml(b.formato)}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        ${b.materialFresco 
+                            ? '<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold text-xs border border-emerald-200"><i class="ph-bold ph-plant"></i> Sí</span>' 
+                            : '<span class="text-slate-400 text-xs">No</span>'}
+                    </td>
+                    <td class="px-6 py-4">${statusBadge}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="openDetailModal('${b.id}')" class="text-brand-600 hover:text-brand-800 font-bold text-xs hover:underline">
+                            Ver Detalle
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Modal Open / Close Handlers
+        function openModal() {
+            const modal = document.getElementById('bookingModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.remove('scale-95');
+            validateRuleRealtime();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('bookingModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.add('scale-95');
+        }
+
+        // Detail Modal Handlers
+        function openDetailModal(id) {
+            const item = bookings.find(b => b.id === id);
+            if (!item) return;
+
+            document.getElementById('detailSubject').innerText = item.asignatura;
+            document.getElementById('detailProf').innerText = `Prof. ${item.profesor}`;
+
+            const date = new Date(item.fechaHora);
+            document.getElementById('detailDate').innerText = date.toLocaleString('es-ES', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+
+            document.getElementById('detailStudents').innerText = `${item.alumnos} Alumnos (${item.formato})`;
+            document.getElementById('detailMaterials').innerText = item.materiales;
+
+            // Status Badge
+            const badge = document.getElementById('detailBadge');
+            if (item.estado === 'APROBADA') {
+                badge.className = "inline-block px-2.5 py-1 text-xs font-bold rounded-lg mb-2 bg-emerald-100 text-emerald-800";
+                badge.innerText = "Solicitud Aprobada";
+            } else {
+                badge.className = "inline-block px-2.5 py-1 text-xs font-bold rounded-lg mb-2 bg-rose-100 text-rose-800";
+                badge.innerText = "Rechazada por Regla de Tiempo";
+            }
+
+            // Fresh Material Badge
+            const freshEl = document.getElementById('detailFreshBadge');
+            if (item.materialFresco) {
+                freshEl.innerHTML = `<span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5"><i class="ph-bold ph-plant"></i> Requiere Material Perecedero</span>`;
+            } else {
+                freshEl.innerHTML = `<span class="text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">No requiere material fresco</span>`;
+            }
+
+            // Reason
+            const reasonContainer = document.getElementById('detailRejectReasonContainer');
+            if (item.motivo) {
+                reasonContainer.classList.remove('hidden');
+                document.getElementById('detailRejectReason').innerText = item.motivo;
+            } else {
+                reasonContainer.classList.add('hidden');
+            }
+
+            // Set delete action
+            document.getElementById('btnDeleteDetail').onclick = () => deleteBooking(item.id);
+
+            const modal = document.getElementById('detailModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.remove('scale-95');
+        }
+
+        function closeDetailModal() {
+            const modal = document.getElementById('detailModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.add('scale-95');
+        }
+
+        // Form Submission
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const profesor = document.getElementById('profesor').value.trim();
+            const asignatura = document.getElementById('asignatura').value.trim();
+            const fechaHora = document.getElementById('fechaHora').value;
+            const alumnos = parseInt(document.getElementById('alumnos').value);
+            const formato = document.getElementById('formato').value;
+            const materialFresco = document.getElementById('materialFresco').checked;
+            const materiales = document.getElementById('materiales').value.trim();
+
+            const ruleResult = validateBookingRules(fechaHora, materialFresco);
+
+            const newBooking = {
+                id: Date.now().toString(),
+                profesor,
+                asignatura,
+                fechaHora: new Date(fechaHora).toISOString(),
+                alumnos,
+                formato,
+                materialFresco,
+                materiales,
+                estado: ruleResult.valid ? 'APROBADA' : 'RECHAZADA',
+                motivo: ruleResult.reason
+            };
+
+            bookings.push(newBooking);
+            saveBookings();
+            closeModal();
+            renderView();
+
+            if (ruleResult.valid) {
+                showToast('Práctica agendada exitosamente', 'success');
+            } else {
+                showToast('Práctica registrada como RECHAZADA debido a normas de tiempo', 'error');
+            }
+
+            // Reset form
+            document.getElementById('bookingForm').reset();
+        }
+
+        // Delete Booking
+        function deleteBooking(id) {
+            if (confirm('¿Está seguro de eliminar esta solicitud de práctica?')) {
+                bookings = bookings.filter(b => b.id !== id);
+                saveBookings();
+                closeDetailModal();
+                renderView();
+                showToast('Práctica eliminada', 'info');
+            }
+        }
+
+        // Export to CSV
+        function exportData() {
+            if (bookings.length === 0) {
+                showToast('No hay datos para exportar', 'info');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,ID,Profesor,Asignatura,Fecha_Hora,Alumnos,Formato,Material_Fresco,Estado,Motivo\n";
+
+            bookings.forEach(b => {
+                const row = [
+                    b.id,
+                    `"${b.profesor}"`,
+                    `"${b.asignatura}"`,
+                    `"${b.fechaHora}"`,
+                    b.alumnos,
+                    `"${b.formato}"`,
+                    b.materialFresco ? "Si" : "No",
+                    b.estado,
+                    `"${b.motivo || ''}"`
+                ].join(",");
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `agenda_practicas_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Toast Notifications
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+
+            let bg = 'bg-slate-800 text-white';
+            if (type === 'success') bg = 'bg-emerald-600 text-white';
+            if (type === 'error') bg = 'bg-rose-600 text-white';
+
+            toast.className = `${bg} px-4 py-3 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 transition-all transform translate-y-2 pointer-events-auto`;
+            toast.innerHTML = `<i class="ph-bold ph-info text-base"></i> ${escapeHtml(message)}`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Utility: Sanitizer
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
