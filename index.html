@@ -138,4 +138,743 @@
             <i class="ph ph-calendar-blank"></i>
             <span>Calendario</span>
           </button>
-          <button @click="currentView = 'list'" :class="currentView === 'list' ? 'bg-white shadow-xs text
+          <button @click="currentView = 'list'" :class="currentView === 'list' ? 'bg-white shadow-xs text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 text-xs rounded-md transition flex items-center gap-1.5">
+            <i class="ph ph-list-bullets"></i>
+            <span>Lista</span>
+          </button>
+        </div>
+
+        <button @click="exportCSV()" class="text-xs font-medium text-slate-600 hover:text-slate-800 border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+          <i class="ph ph-download-simple"></i>
+          <span>Exportar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CALENDARIO POR PERIODOS -->
+    <div x-show="currentView === 'calendar'" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-left min-w-[900px]">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200">
+              <th class="p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-28 text-center border-r border-slate-200">Periodo</th>
+              <template x-for="day in weekDays" :key="day.dateStr">
+                <th class="p-3 text-center border-r border-slate-200 last:border-r-0" :class="day.isToday ? 'bg-rose-50/50' : ''">
+                  <div class="text-xs font-medium text-slate-500" x-text="day.dayName"></div>
+                  <div class="text-sm font-bold text-slate-800 mt-0.5" x-text="day.formattedDate"></div>
+                </th>
+              </template>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 text-xs">
+            <template x-for="period in [1,2,3,4,5,6,7,8]" :key="period">
+              <tr>
+                <td class="p-3 font-semibold text-slate-700 text-center bg-slate-50 border-r border-slate-200">
+                  <div class="font-bold text-slate-900" x-text="'Periodo ' + period"></div>
+                </td>
+
+                <template x-for="day in weekDays" :key="day.dateStr">
+                  <td class="p-2 border-r border-slate-200 last:border-r-0 align-top h-28 hover:bg-slate-50/50 transition relative"
+                      :class="day.isToday ? 'bg-rose-50/20' : ''">
+                    
+                    <div class="space-y-1.5">
+                      <template x-for="item in getBookingsForSlot(day.dateStr, period)" :key="item.id">
+                        <div @click="viewDetail(item)"
+                             class="p-2 rounded-lg border text-left cursor-pointer transition shadow-2xs group hover:scale-[1.02]"
+                             :class="getLabStyle(item.labSpace)">
+                          
+                          <!-- Distintivo de Laboratorio -->
+                          <div class="flex items-center justify-between mb-1">
+                            <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase" :class="getLabBadgeStyle(item.labSpace)" x-text="item.labSpace"></span>
+                            <span x-show="item.needsFreshMaterial" title="Requiere Material Fresco" class="text-amber-700"><i class="ph ph-plant-bold text-xs"></i></span>
+                          </div>
+
+                          <div class="font-bold truncate text-[11px] text-slate-900" x-text="item.subject"></div>
+                          
+                          <!-- Profesor con Color Asignado -->
+                          <div class="text-[10px] font-medium truncate mt-0.5 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full inline-block shrink-0" :style="'background-color:' + getTeacherColor(item.teacher)"></span>
+                            <span x-text="item.teacher" class="text-slate-700"></span>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+
+                  </td>
+                </template>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VISTA LISTA -->
+    <div x-show="currentView === 'list'" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <th class="p-4">Fecha y Periodo</th>
+              <th class="p-4">Laboratorio</th>
+              <th class="p-4">Profesor / Asignatura</th>
+              <th class="p-4">Alumnos / Formato</th>
+              <th class="p-4">Material Fresco</th>
+              <th class="p-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 text-sm">
+            <template x-for="item in filteredListBookings" :key="item.id">
+              <tr class="hover:bg-slate-50/80 transition">
+                <td class="p-4 whitespace-nowrap">
+                  <div class="font-medium text-slate-900" x-text="formatDisplayDate(item.date)"></div>
+                  <div class="text-xs text-slate-500" x-text="'Periodo ' + item.startPeriod + (item.durationPeriods > 1 ? ' al ' + (parseInt(item.startPeriod) + parseInt(item.durationPeriods) - 1) : '')"></div>
+                </td>
+                <td class="p-4">
+                  <span class="text-xs font-extrabold px-2 py-1 rounded" :class="getLabBadgeStyle(item.labSpace)" x-text="item.labSpace"></span>
+                </td>
+                <td class="p-4">
+                  <div class="font-semibold text-slate-800" x-text="item.subject"></div>
+                  <div class="text-xs font-medium flex items-center gap-1.5 mt-0.5">
+                    <span class="w-2 h-2 rounded-full inline-block shrink-0" :style="'background-color:' + getTeacherColor(item.teacher)"></span>
+                    <span x-text="item.teacher" class="text-slate-600"></span>
+                  </div>
+                </td>
+                <td class="p-4 whitespace-nowrap">
+                  <div class="text-slate-800 font-medium" x-text="item.studentsCount + ' alumnos'"></div>
+                  <div class="text-xs text-slate-500" x-text="item.groupFormat"></div>
+                </td>
+                <td class="p-4 whitespace-nowrap">
+                  <template x-if="item.needsFreshMaterial">
+                    <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                      <i class="ph ph-plant"></i> Sí
+                    </span>
+                  </template>
+                  <template x-if="!item.needsFreshMaterial">
+                    <span class="text-xs text-slate-400">No</span>
+                  </template>
+                </td>
+                <td class="p-4 text-right whitespace-nowrap">
+                  <button @click="viewDetail(item)" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+                    <i class="ph ph-eye text-lg"></i>
+                  </button>
+                  <button @click="deleteBooking(item.id)" class="text-rose-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition">
+                    <i class="ph ph-trash text-lg"></i>
+                  </button>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL FORMULARIO -->
+  <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+    <div @click.outside="closeModal()" class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden">
+      
+      <div class="px-6 py-4 bg-brand-600 text-white flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold">Agendar Práctica de Laboratorio</h2>
+          <p class="text-xs text-rose-100">Completa los datos de la solicitud</p>
+        </div>
+        <button @click="closeModal()" class="text-white/80 hover:text-white p-1 rounded-lg">
+          <i class="ph ph-x text-xl"></i>
+        </button>
+      </div>
+
+      <form @submit.prevent="submitForm()" class="p-6 space-y-5">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratorio *</label>
+            <select x-model="formData.labSpace" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+              <template x-for="lab in labOptions" :key="lab.id">
+                <option :value="lab.name" x-text="lab.name"></option>
+              </template>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Profesor *</label>
+            <input type="text" x-model="formData.teacher" required placeholder="Ej. Dr. Roberto Gómez" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Materia / Asignatura *</label>
+            <input type="text" x-model="formData.subject" required placeholder="Ej. Biología Celular" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha de Práctica *</label>
+            <input type="date" x-model="formData.date" @change="validateRules()" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Periodo Inicial *</label>
+            <select x-model="formData.startPeriod" @change="validateRules()" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+              <option value="1">Periodo 1</option>
+              <option value="2">Periodo 2</option>
+              <option value="3">Periodo 3</option>
+              <option value="4">Periodo 4</option>
+              <option value="5">Periodo 5</option>
+              <option value="6">Periodo 6</option>
+              <option value="7">Periodo 7</option>
+              <option value="8">Periodo 8</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Duración (Periodos) *</label>
+            <select x-model="formData.durationPeriods" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+              <option value="1">1 Periodo</option>
+              <option value="2">2 Periodos continuos</option>
+              <option value="3">3 Periodos continuos</option>
+              <option value="4">4 Periodos continuos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" x-model="formData.needsFreshMaterial" @change="validateRules()" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
+            <span class="text-sm font-semibold text-slate-800">¿Requiere Material Fresco o Insumos Especiales?</span>
+          </label>
+          <p class="text-xs text-slate-500 pl-7">
+            Límite: **Miércoles antes de las 12:00 PM** previo a la semana correspondiente.
+          </p>
+        </div>
+
+        <div x-show="validationMessage.text" class="p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 border"
+             :class="validationMessage.isValid ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'">
+          <i class="ph text-lg shrink-0" :class="validationMessage.isValid ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-rose-600'"></i>
+          <span x-html="validationMessage.text"></span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Cantidad de Alumnos *</label>
+            <input type="number" min="1" max="100" x-model="formData.studentsCount" required placeholder="Ej. 25" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Forma / Organización *</label>
+            <select x-model="formData.groupFormat" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+              <option value="Parejas">En Parejas</option>
+              <option value="Equipos de 3-4">Equipos de 3-4 alumnos</option>
+              <option value="Individual">Individual</option>
+              <option value="Demostrativa / Plenaria">Demostrativa (Grupo Completo)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="ph ph-list-plus text-brand-600 text-base"></i>
+              <span>Lista de Materiales e Insumos</span>
+            </label>
+            <button type="button" @click="addMaterialRow()" class="text-xs font-medium text-brand-700 hover:text-brand-800 bg-rose-100/80 hover:bg-rose-100 px-2.5 py-1 rounded-md transition flex items-center gap-1">
+              <i class="ph ph-plus-bold"></i> Agregar Fila
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            <template x-for="(item, index) in formData.materialsList" :key="index">
+              <div class="flex gap-2 items-center">
+                <input type="text" x-model="item.name" placeholder="Material o Reactivo" class="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
+                <input type="text" x-model="item.quantity" placeholder="Cantidad" class="w-36 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
+                <button type="button" @click="removeMaterialRow(index)" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition">
+                  <i class="ph ph-trash text-base"></i>
+                </button>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
+          <button type="button" @click="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
+          <button type="submit" :disabled="!validationMessage.isValid" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm">
+            Confirmar Agendamiento
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE IMPRESIÓN -->
+  <div x-show="isPrintModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+      <h3 class="text-base font-bold text-slate-900">Imprimir Hoja Diaria de Trabajo</h3>
+      <p class="text-xs text-slate-500">Selecciona el día para generar el reporte en PDF o imprimir las prácticas programadas:</p>
+      
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha a imprimir:</label>
+        <input type="date" x-model="printDate" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button @click="isPrintModalOpen = false" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+        <button @click="triggerPrint()" class="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm">Generar / Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTE DE IMPRESIÓN -->
+  <div class="hidden print-only p-8 text-slate-900">
+    <div class="border-b-2 border-brand-600 pb-4 mb-6 flex justify-between items-end">
+      <div>
+        <h1 class="text-2xl font-bold uppercase text-brand-700 tracking-wide">Bitácora de Laboratorios</h1>
+        <p class="text-sm font-medium text-slate-600">Reporte Diario de Agendamiento e Insumos</p>
+      </div>
+      <div class="text-right">
+        <div class="text-sm font-bold" x-text="formatDisplayDate(printDate)"></div>
+        <div class="text-xs text-slate-500" x-text="'Generado el: ' + new Date().toLocaleDateString('es-ES')"></div>
+      </div>
+    </div>
+
+    <template x-for="item in getDailyBookings(printDate)" :key="item.id">
+      <div class="mb-6 p-4 border border-slate-300 rounded-lg space-y-3">
+        <div class="flex justify-between items-start border-b border-slate-200 pb-2">
+          <div>
+            <span class="text-xs font-extrabold uppercase px-2 py-0.5 rounded border" :class="getLabBadgeStyle(item.labSpace)" x-text="item.labSpace"></span>
+            <h2 class="text-base font-bold text-slate-900 mt-1" x-text="item.subject"></h2>
+            <p class="text-xs text-slate-700" x-text="'Profesor: ' + item.teacher"></p>
+          </div>
+          <div class="text-right">
+            <span class="text-xs font-bold bg-slate-100 px-2.5 py-1 rounded border border-slate-300" x-text="'Periodo ' + item.startPeriod + (item.durationPeriods > 1 ? ' - ' + (parseInt(item.startPeriod) + parseInt(item.durationPeriods) - 1) : '')"></span>
+            <p class="text-xs text-slate-600 mt-1" x-text="item.studentsCount + ' alumnos (' + item.groupFormat + ')'"></p>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Insumos y Materiales Requeridos:</h4>
+          <table class="w-full text-xs border border-slate-300">
+            <thead class="bg-slate-100 border-b border-slate-300">
+              <tr>
+                <th class="p-1.5 text-left border-r border-slate-300">Material / Reactivo</th>
+                <th class="p-1.5 text-left w-36">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              <template x-for="mat in item.materialsList" :key="mat.name">
+                <tr>
+                  <td class="p-1.5 border-r border-slate-200" x-text="mat.name"></td>
+                  <td class="p-1.5 font-medium" x-text="mat.quantity"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- MODAL DETALLE -->
+  <div x-show="selectedBooking !== null" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
+      <template x-if="selectedBooking">
+        <div>
+          <div class="p-6 bg-slate-50 border-b border-slate-200 flex justify-between items-start">
+            <div>
+              <span class="inline-block px-2.5 py-0.5 rounded text-xs font-extrabold mb-1 uppercase" :class="getLabBadgeStyle(selectedBooking.labSpace)" x-text="selectedBooking.labSpace"></span>
+              <h3 class="text-lg font-bold text-slate-900" x-text="selectedBooking.subject"></h3>
+              <div class="text-xs font-medium flex items-center gap-1.5 mt-1">
+                <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" :style="'background-color:' + getTeacherColor(selectedBooking.teacher)"></span>
+                <span x-text="'Profesor: ' + selectedBooking.teacher" class="text-slate-700"></span>
+              </div>
+            </div>
+            <button @click="selectedBooking = null" class="text-slate-400 hover:text-slate-600">
+              <i class="ph ph-x text-xl"></i>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4 text-xs text-slate-700">
+            <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-lg">
+              <div>
+                <span class="text-slate-400 block font-medium">Fecha:</span>
+                <span class="font-semibold text-slate-800" x-text="formatDisplayDate(selectedBooking.date)"></span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Horario:</span>
+                <span class="font-semibold text-slate-800" x-text="'Periodo ' + selectedBooking.startPeriod + (selectedBooking.durationPeriods > 1 ? ' - ' + (parseInt(selectedBooking.startPeriod) + parseInt(selectedBooking.durationPeriods) - 1) : '')"></span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 border-b border-slate-100 pb-3">
+              <div>
+                <span class="text-slate-400 block font-medium">Alumnos:</span>
+                <span class="font-medium text-slate-800" x-text="selectedBooking.studentsCount + ' estudiantes'"></span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Modalidad:</span>
+                <span class="font-medium text-slate-800" x-text="selectedBooking.groupFormat"></span>
+              </div>
+            </div>
+
+            <div>
+              <span class="text-slate-400 block font-medium mb-1">Material Fresco Requerido:</span>
+              <span class="font-medium" :class="selectedBooking.needsFreshMaterial ? 'text-amber-700 font-bold' : 'text-slate-600'"
+                    x-text="selectedBooking.needsFreshMaterial ? 'Sí (Solicitado en plazo)' : 'No requiere'"></span>
+            </div>
+
+            <div>
+              <span class="text-slate-400 block font-medium mb-1">Lista de Insumos:</span>
+              <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1">
+                <template x-for="mat in selectedBooking.materialsList" :key="mat.name">
+                  <div class="flex justify-between border-b border-slate-200/60 pb-1 last:border-b-0">
+                    <span class="font-medium text-slate-800" x-text="mat.name"></span>
+                    <span class="text-slate-500" x-text="mat.quantity"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+            <button @click="selectedBooking = null" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-300">Cerrar</button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <script>
+    function appData() {
+      return {
+        currentView: 'calendar',
+        currentWeekOffset: 0,
+        isModalOpen: false,
+        isPrintModalOpen: false,
+        selectedBooking: null,
+        selectedLabFilter: 'ALL',
+        printDate: new Date().toISOString().split('T')[0],
+        bookings: [],
+        
+        labOptions: [
+          { id: 26, name: 'Laboratorio 26' },
+          { id: 27, name: 'Laboratorio 27' },
+          { id: 28, name: 'Laboratorio 28' },
+          { id: 29, name: 'Laboratorio 29' },
+          { id: 30, name: 'Laboratorio 30' }
+        ],
+
+        teacherPalette: [
+          '#0284c7', '#7c3aed', '#059669', '#d97706', '#dc2626',
+          '#4f46e5', '#0891b2', '#65a30d', '#c026d3', '#ea580c'
+        ],
+
+        formData: {
+          labSpace: 'Laboratorio 26',
+          teacher: '',
+          subject: '',
+          date: '',
+          startPeriod: '1',
+          durationPeriods: '1',
+          needsFreshMaterial: false,
+          studentsCount: '',
+          groupFormat: 'Parejas',
+          materialsList: [
+            { name: '', quantity: '' }
+          ]
+        },
+
+        validationMessage: {
+          isValid: true,
+          text: ''
+        },
+
+        initData() {
+          const saved = localStorage.getItem('lab_bookings_data_v3');
+          if (saved) {
+            this.bookings = JSON.parse(saved);
+          } else {
+            const today = new Date().toISOString().split('T')[0];
+            this.bookings = [
+              {
+                id: 1,
+                labSpace: 'Laboratorio 26',
+                teacher: 'Dra. María Carmen',
+                subject: 'Biología Celular',
+                date: today,
+                startPeriod: '2',
+                durationPeriods: '2',
+                needsFreshMaterial: true,
+                studentsCount: 24,
+                groupFormat: 'Parejas',
+                materialsList: [
+                  { name: 'Microscopios Ópticos', quantity: '12 pzas' },
+                  { name: 'Muestras de Elodea fresca', quantity: '1 envase' }
+                ],
+                status: 'Aprobada'
+              }
+            ];
+            this.saveStorage();
+          }
+        },
+
+        saveStorage() {
+          localStorage.setItem('lab_bookings_data_v3', JSON.stringify(this.bookings));
+        },
+
+        getTeacherColor(teacherName) {
+          if (!teacherName) return '#64748b';
+          let hash = 0;
+          for (let i = 0; i < teacherName.length; i++) {
+            hash = teacherName.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          const index = Math.abs(hash) % this.teacherPalette.length;
+          return this.teacherPalette[index];
+        },
+
+        getLabStyle(labName) {
+          switch(labName) {
+            case 'Laboratorio 26': return 'bg-purple-50 border-purple-200 hover:bg-purple-100';
+            case 'Laboratorio 27': return 'bg-sky-50 border-sky-200 hover:bg-sky-100';
+            case 'Laboratorio 28': return 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100';
+            case 'Laboratorio 29': return 'bg-amber-50 border-amber-200 hover:bg-amber-100';
+            case 'Laboratorio 30': return 'bg-rose-50 border-rose-200 hover:bg-rose-100';
+            default: return 'bg-slate-50 border-slate-200';
+          }
+        },
+
+        getLabBadgeStyle(labName) {
+          switch(labName) {
+            case 'Laboratorio 26': return 'bg-purple-100 text-purple-800 border-purple-200';
+            case 'Laboratorio 27': return 'bg-sky-100 text-sky-800 border-sky-200';
+            case 'Laboratorio 28': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+            case 'Laboratorio 29': return 'bg-amber-100 text-amber-800 border-amber-200';
+            case 'Laboratorio 30': return 'bg-rose-100 text-rose-800 border-rose-200';
+            default: return 'bg-slate-100 text-slate-800';
+          }
+        },
+
+        addMaterialRow() {
+          this.formData.materialsList.push({ name: '', quantity: '' });
+        },
+
+        removeMaterialRow(index) {
+          if (this.formData.materialsList.length > 1) {
+            this.formData.materialsList.splice(index, 1);
+          }
+        },
+
+        get currentWeekStartDate() {
+          const now = new Date();
+          const dayOfWeek = now.getDay(); 
+          const diffToMonday = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+          const monday = new Date(now.setDate(diffToMonday));
+          monday.setDate(monday.getDate() + (this.currentWeekOffset * 7));
+          monday.setHours(0,0,0,0);
+          return monday;
+        },
+
+        get weekDays() {
+          const days = [];
+          const start = this.currentWeekStartDate;
+          const todayStr = new Date().toISOString().split('T')[0];
+          const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+          for (let i = 0; i < 6; i++) {
+            const d = new Date(start);
+            d.setDate(d.getDate() + i);
+            const dateStr = d.toISOString().split('T')[0];
+            days.push({
+              dayName: dayNames[i],
+              dateStr: dateStr,
+              formattedDate: d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+              isToday: dateStr === todayStr
+            });
+          }
+          return days;
+        },
+
+        get weekRangeText() {
+          const start = this.currentWeekStartDate;
+          const end = new Date(start);
+          end.setDate(end.getDate() + 5);
+          return `${start.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+        },
+
+        changeWeek(offset) {
+          this.currentWeekOffset += offset;
+        },
+
+        resetToCurrentWeek() {
+          this.currentWeekOffset = 0;
+        },
+
+        getBookingsForSlot(dateStr, period) {
+          return this.bookings.filter(b => {
+            if (b.date !== dateStr) return false;
+            if (this.selectedLabFilter !== 'ALL' && b.labSpace !== this.selectedLabFilter) return false;
+            const startP = parseInt(b.startPeriod);
+            const durP = parseInt(b.durationPeriods);
+            const endP = startP + durP - 1;
+            return period >= startP && period <= endP;
+          });
+        },
+
+        get filteredListBookings() {
+          const days = this.weekDays.map(d => d.dateStr);
+          return this.bookings.filter(b => days.includes(b.date) && (this.selectedLabFilter === 'ALL' || b.labSpace === this.selectedLabFilter));
+        },
+
+        getDailyBookings(dateStr) {
+          return this.bookings.filter(b => b.date === dateStr);
+        },
+
+        validateRules() {
+          if (!this.formData.date) {
+            this.validationMessage = { isValid: false, text: 'Seleccione una fecha para la práctica.' };
+            return;
+          }
+
+          const now = new Date();
+          const targetDate = new Date(this.formData.date + 'T00:00:00');
+
+          const diffHours = (targetDate - now) / (1000 * 60 * 60);
+          if (diffHours < 48) {
+            this.validationMessage = {
+              isValid: false,
+              text: '<strong>Error de Anticipación:</strong> Las prácticas deben agendarse con al menos 48 horas de anticipación.'
+            };
+            return;
+          }
+
+          if (this.formData.needsFreshMaterial) {
+            const targetDayOfWeek = targetDate.getDay(); 
+            const diffToMonday = targetDate.getDate() - targetDayOfWeek + (targetDayOfWeek === 0 ? -6 : 1);
+            const practiceMonday = new Date(targetDate);
+            practiceMonday.setDate(diffToMonday);
+            practiceMonday.setHours(0,0,0,0);
+
+            const deadlineWednesday = new Date(practiceMonday);
+            deadlineWednesday.setDate(deadlineWednesday.getDate() - 5); 
+            deadlineWednesday.setHours(12, 0, 0, 0);
+
+            if (now > deadlineWednesday) {
+              this.validationMessage = {
+                isValid: false,
+                text: `<strong>Límite de Material Fresco Superado:</strong> Debe solicitarse antes del miércoles a las 12:00 PM previo a la semana correspondiente.`
+              };
+              return;
+            }
+          }
+
+          this.validationMessage = {
+            isValid: true,
+            text: '<strong>Solicitud Válida:</strong> Cumple con todos los tiempos requeridos de anticipación.'
+          };
+        },
+
+        openModal() {
+          this.formData = {
+            labSpace: 'Laboratorio 26',
+            teacher: '',
+            subject: '',
+            date: '',
+            startPeriod: '1',
+            durationPeriods: '1',
+            needsFreshMaterial: false,
+            studentsCount: '',
+            groupFormat: 'Parejas',
+            materialsList: [{ name: '', quantity: '' }]
+          };
+          this.validationMessage = { isValid: false, text: '' };
+          this.isModalOpen = true;
+        },
+
+        closeModal() {
+          this.isModalOpen = false;
+        },
+
+        openDailyPrintModal() {
+          this.isPrintModalOpen = true;
+        },
+
+        triggerPrint() {
+          this.isPrintModalOpen = false;
+          setTimeout(() => {
+            window.print();
+          }, 300);
+        },
+
+        submitForm() {
+          if (!this.validationMessage.isValid) return;
+
+          const cleanMaterials = this.formData.materialsList.filter(m => m.name.trim() !== '');
+
+          const newBooking = {
+            id: Date.now(),
+            ...this.formData,
+            materialsList: cleanMaterials,
+            status: 'Aprobada'
+          };
+
+          this.bookings.push(newBooking);
+          this.saveStorage();
+          this.closeModal();
+
+          Swal.fire({
+            icon: 'success',
+            title: '¡Práctica Agendada!',
+            text: 'La práctica se registró correctamente en la bitácora.',
+            confirmColor: '#c8102e'
+          });
+        },
+
+        viewDetail(item) {
+          this.selectedBooking = item;
+        },
+
+        deleteBooking(id) {
+          Swal.fire({
+            title: '¿Eliminar agendamiento?',
+            text: 'Esta acción no se puede deshacer.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmColor: '#dc2626',
+            cancelColor: '#64748b',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              this.bookings = this.bookings.filter(b => b.id !== id);
+              this.saveStorage();
+              Swal.fire('Eliminado', 'El registro se ha eliminado.', 'success');
+            }
+          });
+        },
+
+        formatDisplayDate(dateStr) {
+          if (!dateStr) return '';
+          const parts = dateStr.split('-');
+          const d = new Date(parts[0], parts[1] - 1, parts[2]);
+          return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+        },
+
+        exportCSV() {
+          if (this.bookings.length === 0) {
+            Swal.fire('Sin datos', 'No hay registros para exportar', 'info');
+            return;
+          }
+
+          let csvContent = "data:text/csv;charset=utf-8,ID,Laboratorio,Profesor,Materia,Fecha,Periodo_Inicio,Duracion_Periodos,Alumnos,Formato,Material_Fresco,Estado\n";
+          this.bookings.forEach(b => {
+            csvContent += `${b.id},"${b.labSpace}","${b.teacher}","${b.subject}",${b.date},${b.startPeriod},${b.durationPeriods},${b.studentsCount},"${b.groupFormat}",${b.needsFreshMaterial ? 'SI' : 'NO'},${b.status}\n`;
+          });
+
+          const encodedUri = encodeURI(csvContent);
+          const link = document.createElement("a");
+          link.setAttribute("href", encodedUri);
+          link.setAttribute("download", `bitacora_laboratorios_${new Date().toISOString().split('T')[0]}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      };
+    }
+  </script>
+</body>
+</html>
