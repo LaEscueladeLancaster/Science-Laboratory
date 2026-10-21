@@ -27,7 +27,7 @@
               50: '#fff1f2',
               100: '#ffe4e6',
               500: '#e11d48',
-              600: '#c8102e', // Rojo institucional
+              600: '#c8102e',
               700: '#9f1239',
               800: '#881337',
               900: '#4c0519',
@@ -255,10 +255,13 @@
                   </template>
                 </td>
                 <td class="p-4 text-right whitespace-nowrap">
-                  <button @click="viewDetail(item)" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+                  <button @click="viewDetail(item)" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition" title="Ver Detalle">
                     <i class="ph ph-eye text-lg"></i>
                   </button>
-                  <button @click="deleteBooking(item.id)" class="text-rose-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition">
+                  <button @click="editBooking(item)" class="text-slate-400 hover:text-brand-600 p-1.5 rounded-lg hover:bg-rose-50 transition" title="Editar">
+                    <i class="ph ph-pencil-simple text-lg"></i>
+                  </button>
+                  <button @click="deleteBooking(item.id)" class="text-rose-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition" title="Eliminar">
                     <i class="ph ph-trash text-lg"></i>
                   </button>
                 </td>
@@ -271,14 +274,14 @@
 
   </main>
 
-  <!-- MODAL FORMULARIO -->
+  <!-- MODAL FORMULARIO (AGENDAR / EDITAR) -->
   <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
     <div @click.outside="closeModal()" class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden">
       
       <div class="px-6 py-4 bg-brand-600 text-white flex justify-between items-center">
         <div>
-          <h2 class="text-lg font-bold">Agendar Práctica de Laboratorio</h2>
-          <p class="text-xs text-rose-100">Completa los datos de la solicitud</p>
+          <h2 class="text-lg font-bold" x-text="editingBookingId ? 'Editar Práctica de Laboratorio' : 'Agendar Práctica de Laboratorio'"></h2>
+          <p class="text-xs text-rose-100" x-text="editingBookingId ? 'Modifica los datos de la solicitud' : 'Completa los datos de la solicitud'"></p>
         </div>
         <button @click="closeModal()" class="text-white/80 hover:text-white p-1 rounded-lg">
           <i class="ph ph-x text-xl"></i>
@@ -393,8 +396,7 @@
 
         <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
           <button type="button" @click="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-          <button type="submit" :disabled="!validationMessage.isValid" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm">
-            Confirmar Agendamiento
+          <button type="submit" :disabled="!validationMessage.isValid" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm" x-text="editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento'">
           </button>
         </div>
 
@@ -531,7 +533,15 @@
             </div>
           </div>
 
-          <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+          <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+            <div class="flex gap-2">
+              <button @click="editBooking(selectedBooking)" class="px-3 py-1.5 bg-rose-100 text-brand-700 hover:bg-rose-200 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+                <i class="ph ph-pencil-simple text-sm"></i> Editar
+              </button>
+              <button @click="deleteBooking(selectedBooking.id)" class="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+                <i class="ph ph-trash text-sm"></i> Eliminar
+              </button>
+            </div>
             <button @click="selectedBooking = null" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-300">Cerrar</button>
           </div>
         </div>
@@ -547,6 +557,7 @@
         isModalOpen: false,
         isPrintModalOpen: false,
         selectedBooking: null,
+        editingBookingId: null,
         selectedLabFilter: 'ALL',
         printDate: new Date().toISOString().split('T')[0],
         bookings: [],
@@ -769,6 +780,7 @@
         },
 
         openModal() {
+          this.editingBookingId = null;
           this.formData = {
             labSpace: 'Laboratorio 26',
             teacher: '',
@@ -785,8 +797,20 @@
           this.isModalOpen = true;
         },
 
+        editBooking(item) {
+          this.selectedBooking = null;
+          this.editingBookingId = item.id;
+          this.formData = JSON.parse(JSON.stringify(item));
+          if (!this.formData.materialsList || this.formData.materialsList.length === 0) {
+            this.formData.materialsList = [{ name: '', quantity: '' }];
+          }
+          this.validateRules();
+          this.isModalOpen = true;
+        },
+
         closeModal() {
           this.isModalOpen = false;
+          this.editingBookingId = null;
         },
 
         openDailyPrintModal() {
@@ -805,21 +829,33 @@
 
           const cleanMaterials = this.formData.materialsList.filter(m => m.name.trim() !== '');
 
-          const newBooking = {
-            id: Date.now(),
-            ...this.formData,
-            materialsList: cleanMaterials,
-            status: 'Aprobada'
-          };
+          if (this.editingBookingId) {
+            const index = this.bookings.findIndex(b => b.id === this.editingBookingId);
+            if (index !== -1) {
+              this.bookings[index] = {
+                ...this.formData,
+                id: this.editingBookingId,
+                materialsList: cleanMaterials,
+                status: 'Aprobada'
+              };
+            }
+          } else {
+            const newBooking = {
+              id: Date.now(),
+              ...this.formData,
+              materialsList: cleanMaterials,
+              status: 'Aprobada'
+            };
+            this.bookings.push(newBooking);
+          }
 
-          this.bookings.push(newBooking);
           this.saveStorage();
           this.closeModal();
 
           Swal.fire({
             icon: 'success',
-            title: '¡Práctica Agendada!',
-            text: 'La práctica se registró correctamente en la bitácora.',
+            title: this.editingBookingId ? '¡Práctica Actualizada!' : '¡Práctica Agendada!',
+            text: 'Los cambios se guardaron correctamente en la bitácora.',
             confirmColor: '#c8102e'
           });
         },
@@ -829,6 +865,7 @@
         },
 
         deleteBooking(id) {
+          this.selectedBooking = null;
           Swal.fire({
             title: '¿Eliminar agendamiento?',
             text: 'Esta acción no se puede deshacer.',
@@ -842,7 +879,12 @@
             if (result.isConfirmed) {
               this.bookings = this.bookings.filter(b => b.id !== id);
               this.saveStorage();
-              Swal.fire('Eliminado', 'El registro se ha eliminado.', 'success');
+              Swal.fire({
+                icon: 'success',
+                title: 'Eliminado',
+                text: 'El registro se ha eliminado de la bitácora.',
+                confirmColor: '#c8102e'
+              });
             }
           });
         },
