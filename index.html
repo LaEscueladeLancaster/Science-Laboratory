@@ -27,7 +27,7 @@
               50: '#fff1f2',
               100: '#ffe4e6',
               500: '#e11d48',
-              600: '#c8102e',
+              600: '#c8102e', // Rojo institucional
               700: '#9f1239',
               800: '#881337',
               900: '#4c0519',
@@ -59,7 +59,7 @@
           </div>
           <div>
             <h1 class="font-bold text-lg text-white leading-tight">Bitácora de Laboratorios</h1>
-            <p class="text-xs text-rose-100 font-medium">Catálogo & Agendamiento de Prácticas</p>
+            <p class="text-xs text-rose-100 font-medium">La Escuela de Lancaster</p>
           </div>
         </div>
 
@@ -120,11 +120,11 @@
         </button>
       </div>
 
-      <!-- Filtro por Laboratorio (26-30) -->
+      <!-- Filtro por Ubicación -->
       <div class="flex items-center gap-2 w-full lg:w-auto">
-        <label class="text-xs font-medium text-slate-500 shrink-0">Laboratorio:</label>
+        <label class="text-xs font-medium text-slate-500 shrink-0">Espacio:</label>
         <select x-model="selectedLabFilter" class="text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 focus:ring-2 focus:ring-brand-500">
-          <option value="ALL">Todos los Laboratorios</option>
+          <option value="ALL">Todos los Espacios</option>
           <template x-for="lab in labOptions" :key="lab.id">
             <option :value="lab.name" x-text="lab.name"></option>
           </template>
@@ -181,11 +181,11 @@
                       <template x-for="item in getBookingsForSlot(day.dateStr, period)" :key="item.id">
                         <div @click="viewDetail(item)"
                              class="p-2 rounded-lg border text-left cursor-pointer transition shadow-2xs group hover:scale-[1.02]"
-                             :class="getLabStyle(item.labSpace)">
+                             :class="getLabStyle(item.labType)">
                           
-                          <!-- Distintivo de Laboratorio -->
+                          <!-- Distintivo de Espacio -->
                           <div class="flex items-center justify-between mb-1">
-                            <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase" :class="getLabBadgeStyle(item.labSpace)" x-text="item.labSpace"></span>
+                            <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
                             <span x-show="item.needsFreshMaterial" title="Requiere Material Fresco" class="text-amber-700"><i class="ph ph-plant-bold text-xs"></i></span>
                           </div>
 
@@ -216,10 +216,10 @@
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <th class="p-4">Fecha y Periodo</th>
-              <th class="p-4">Laboratorio</th>
+              <th class="p-4">Ubicación</th>
               <th class="p-4">Profesor / Asignatura</th>
+              <th class="p-4">Laboratorista</th>
               <th class="p-4">Alumnos / Formato</th>
-              <th class="p-4">Material Fresco</th>
               <th class="p-4 text-right">Acciones</th>
             </tr>
           </thead>
@@ -231,7 +231,7 @@
                   <div class="text-xs text-slate-500" x-text="'Periodo ' + item.startPeriod + (item.durationPeriods > 1 ? ' al ' + (parseInt(item.startPeriod) + parseInt(item.durationPeriods) - 1) : '')"></div>
                 </td>
                 <td class="p-4">
-                  <span class="text-xs font-extrabold px-2 py-1 rounded" :class="getLabBadgeStyle(item.labSpace)" x-text="item.labSpace"></span>
+                  <span class="text-xs font-extrabold px-2 py-1 rounded" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
                 </td>
                 <td class="p-4">
                   <div class="font-semibold text-slate-800" x-text="item.subject"></div>
@@ -240,19 +240,10 @@
                     <span x-text="item.teacher" class="text-slate-600"></span>
                   </div>
                 </td>
+                <td class="p-4 font-medium text-xs text-slate-700" x-text="item.labTech || 'Sin asignar'"></td>
                 <td class="p-4 whitespace-nowrap">
                   <div class="text-slate-800 font-medium" x-text="item.studentsCount + ' alumnos'"></div>
                   <div class="text-xs text-slate-500" x-text="item.groupFormat"></div>
-                </td>
-                <td class="p-4 whitespace-nowrap">
-                  <template x-if="item.needsFreshMaterial">
-                    <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                      <i class="ph ph-plant"></i> Sí
-                    </span>
-                  </template>
-                  <template x-if="!item.needsFreshMaterial">
-                    <span class="text-xs text-slate-400">No</span>
-                  </template>
                 </td>
                 <td class="p-4 text-right whitespace-nowrap">
                   <button @click="viewDetail(item)" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition" title="Ver Detalle">
@@ -280,7 +271,7 @@
       
       <div class="px-6 py-4 bg-brand-600 text-white flex justify-between items-center">
         <div>
-          <h2 class="text-lg font-bold" x-text="editingBookingId ? 'Editar Práctica de Laboratorio' : 'Agendar Práctica de Laboratorio'"></h2>
+          <h2 class="text-lg font-bold" x-text="editingBookingId ? 'Editar Práctica' : 'Agendar Práctica'"></h2>
           <p class="text-xs text-rose-100" x-text="editingBookingId ? 'Modifica los datos de la solicitud' : 'Completa los datos de la solicitud'"></p>
         </div>
         <button @click="closeModal()" class="text-white/80 hover:text-white p-1 rounded-lg">
@@ -290,25 +281,50 @@
 
       <form @submit.prevent="submitForm()" class="p-6 space-y-5">
 
+        <!-- Espacio y Asignatura -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratorio *</label>
-            <select x-model="formData.labSpace" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
-              <template x-for="lab in labOptions" :key="lab.id">
-                <option :value="lab.name" x-text="lab.name"></option>
-              </template>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Espacio / Ubicación *</label>
+            <select x-model="formData.labType" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+              <option value="Laboratorio 26">Laboratorio 26</option>
+              <option value="Laboratorio 27">Laboratorio 27</option>
+              <option value="Laboratorio 28">Laboratorio 28</option>
+              <option value="Laboratorio 29">Laboratorio 29</option>
+              <option value="Laboratorio 30">Laboratorio 30</option>
+              <option value="Salón de clases">Salón de clases</option>
             </select>
           </div>
+
+          <!-- Número de Salón si aplica -->
+          <div x-show="formData.labType === 'Salón de clases'">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Número de Salón *</label>
+            <input type="text" x-model="formData.classroomNumber" :required="formData.labType === 'Salón de clases'" placeholder="Ej. Salón 12" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Asignatura *</label>
+            <select x-model="formData.subject" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+              <option value="Biología">Biología</option>
+              <option value="Física">Física</option>
+              <option value="Química">Química</option>
+              <option value="Ciencias Integradas">Ciencias Integradas</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Profesor y Laboratorista -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Profesor *</label>
             <input type="text" x-model="formData.teacher" required placeholder="Ej. Dr. Roberto Gómez" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Materia / Asignatura *</label>
-            <input type="text" x-model="formData.subject" required placeholder="Ej. Biología Celular" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratorista que Atiende *</label>
+            <input type="text" x-model="formData.labTech" required placeholder="Ej. Lic. Ana Morales" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
           </div>
         </div>
 
+        <!-- Fecha y Horarios -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha de Práctica *</label>
@@ -338,6 +354,7 @@
           </div>
         </div>
 
+        <!-- Material Fresco -->
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
           <label class="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" x-model="formData.needsFreshMaterial" @change="validateRules()" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
@@ -354,6 +371,7 @@
           <span x-html="validationMessage.text"></span>
         </div>
 
+        <!-- Alumnos y Modalidad -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Cantidad de Alumnos *</label>
@@ -370,21 +388,48 @@
           </div>
         </div>
 
+        <!-- TABLA 1: REACTIVOS Y SOLUCIONES (CONCENTRACIÓN Y VOLUMEN) -->
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="ph ph-test-tube text-brand-600 text-base"></i>
+              <span>Reactivos y Soluciones (Concentración y Volumen)</span>
+            </label>
+            <button type="button" @click="addReagentRow()" class="text-xs font-medium text-brand-700 hover:text-brand-800 bg-rose-100/80 hover:bg-rose-100 px-2.5 py-1 rounded-md transition flex items-center gap-1">
+              <i class="ph ph-plus-bold"></i> Agregar Reactivo
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            <template x-for="(item, index) in formData.reagentsList" :key="index">
+              <div class="flex gap-2 items-center">
+                <input type="text" x-model="item.name" placeholder="Reactivo / Solución" class="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
+                <input type="text" x-model="item.concentration" placeholder="Concentración (ej. 0.1 M)" class="w-32 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
+                <input type="text" x-model="item.volume" placeholder="Volumen (ej. 250 ml)" class="w-32 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
+                <button type="button" @click="removeReagentRow(index)" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition">
+                  <i class="ph ph-trash text-base"></i>
+                </button>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- TABLA 2: MATERIAL GENERAL Y EQUIPO -->
         <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3">
           <div class="flex justify-between items-center">
             <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <i class="ph ph-list-plus text-brand-600 text-base"></i>
-              <span>Lista de Materiales e Insumos</span>
+              <span>Material General y Equipo</span>
             </label>
             <button type="button" @click="addMaterialRow()" class="text-xs font-medium text-brand-700 hover:text-brand-800 bg-rose-100/80 hover:bg-rose-100 px-2.5 py-1 rounded-md transition flex items-center gap-1">
-              <i class="ph ph-plus-bold"></i> Agregar Fila
+              <i class="ph ph-plus-bold"></i> Agregar Material
             </button>
           </div>
 
           <div class="space-y-2">
             <template x-for="(item, index) in formData.materialsList" :key="index">
               <div class="flex gap-2 items-center">
-                <input type="text" x-model="item.name" placeholder="Material o Reactivo" class="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
+                <input type="text" x-model="item.name" placeholder="Material o Equipo" class="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
                 <input type="text" x-model="item.quantity" placeholder="Cantidad" class="w-36 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
                 <button type="button" @click="removeMaterialRow(index)" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition">
                   <i class="ph ph-trash text-base"></i>
@@ -439,9 +484,9 @@
       <div class="mb-6 p-4 border border-slate-300 rounded-lg space-y-3">
         <div class="flex justify-between items-start border-b border-slate-200 pb-2">
           <div>
-            <span class="text-xs font-extrabold uppercase px-2 py-0.5 rounded border" :class="getLabBadgeStyle(item.labSpace)" x-text="item.labSpace"></span>
+            <span class="text-xs font-extrabold uppercase px-2 py-0.5 rounded border" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
             <h2 class="text-base font-bold text-slate-900 mt-1" x-text="item.subject"></h2>
-            <p class="text-xs text-slate-700" x-text="'Profesor: ' + item.teacher"></p>
+            <p class="text-xs text-slate-700" x-text="'Profesor: ' + item.teacher + ' | Laboratorista: ' + (item.labTech || 'N/A')"></p>
           </div>
           <div class="text-right">
             <span class="text-xs font-bold bg-slate-100 px-2.5 py-1 rounded border border-slate-300" x-text="'Periodo ' + item.startPeriod + (item.durationPeriods > 1 ? ' - ' + (parseInt(item.startPeriod) + parseInt(item.durationPeriods) - 1) : '')"></span>
@@ -449,12 +494,34 @@
           </div>
         </div>
 
+        <div x-show="item.reagentsList && item.reagentsList.length > 0">
+          <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Reactivos y Soluciones:</h4>
+          <table class="w-full text-xs border border-slate-300 mb-3">
+            <thead class="bg-slate-100 border-b border-slate-300">
+              <tr>
+                <th class="p-1.5 text-left border-r border-slate-300">Reactivo / Solución</th>
+                <th class="p-1.5 text-left border-r border-slate-300 w-28">Concentración</th>
+                <th class="p-1.5 text-left w-28">Volumen</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              <template x-for="reag in item.reagentsList" :key="reag.name">
+                <tr>
+                  <td class="p-1.5 border-r border-slate-200" x-text="reag.name"></td>
+                  <td class="p-1.5 border-r border-slate-200 font-medium" x-text="reag.concentration"></td>
+                  <td class="p-1.5 font-medium" x-text="reag.volume"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
         <div>
-          <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Insumos y Materiales Requeridos:</h4>
+          <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Materiales y Equipo:</h4>
           <table class="w-full text-xs border border-slate-300">
             <thead class="bg-slate-100 border-b border-slate-300">
               <tr>
-                <th class="p-1.5 text-left border-r border-slate-300">Material / Reactivo</th>
+                <th class="p-1.5 text-left border-r border-slate-300">Material / Equipo</th>
                 <th class="p-1.5 text-left w-36">Cantidad</th>
               </tr>
             </thead>
@@ -479,12 +546,13 @@
         <div>
           <div class="p-6 bg-slate-50 border-b border-slate-200 flex justify-between items-start">
             <div>
-              <span class="inline-block px-2.5 py-0.5 rounded text-xs font-extrabold mb-1 uppercase" :class="getLabBadgeStyle(selectedBooking.labSpace)" x-text="selectedBooking.labSpace"></span>
+              <span class="inline-block px-2.5 py-0.5 rounded text-xs font-extrabold mb-1 uppercase" :class="getLabBadgeStyle(selectedBooking.labType)" x-text="getDisplaySpace(selectedBooking)"></span>
               <h3 class="text-lg font-bold text-slate-900" x-text="selectedBooking.subject"></h3>
               <div class="text-xs font-medium flex items-center gap-1.5 mt-1">
                 <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" :style="'background-color:' + getTeacherColor(selectedBooking.teacher)"></span>
                 <span x-text="'Profesor: ' + selectedBooking.teacher" class="text-slate-700"></span>
               </div>
+              <div class="text-xs text-slate-500 mt-0.5" x-text="'Atiende: ' + (selectedBooking.labTech || 'Sin especificar')"></div>
             </div>
             <button @click="selectedBooking = null" class="text-slate-400 hover:text-slate-600">
               <i class="ph ph-x text-xl"></i>
@@ -514,14 +582,20 @@
               </div>
             </div>
 
-            <div>
-              <span class="text-slate-400 block font-medium mb-1">Material Fresco Requerido:</span>
-              <span class="font-medium" :class="selectedBooking.needsFreshMaterial ? 'text-amber-700 font-bold' : 'text-slate-600'"
-                    x-text="selectedBooking.needsFreshMaterial ? 'Sí (Solicitado en plazo)' : 'No requiere'"></span>
+            <div x-show="selectedBooking.reagentsList && selectedBooking.reagentsList.length > 0">
+              <span class="text-slate-400 block font-medium mb-1">Reactivos y Soluciones:</span>
+              <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5">
+                <template x-for="reag in selectedBooking.reagentsList" :key="reag.name">
+                  <div class="flex justify-between text-[11px] border-b border-slate-200/60 pb-1 last:border-b-0">
+                    <span class="font-bold text-slate-800" x-text="reag.name"></span>
+                    <span class="text-slate-600" x-text="reag.concentration + ' | ' + reag.volume"></span>
+                  </div>
+                </template>
+              </div>
             </div>
 
             <div>
-              <span class="text-slate-400 block font-medium mb-1">Lista de Insumos:</span>
+              <span class="text-slate-400 block font-medium mb-1">Lista de Materiales:</span>
               <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1">
                 <template x-for="mat in selectedBooking.materialsList" :key="mat.name">
                   <div class="flex justify-between border-b border-slate-200/60 pb-1 last:border-b-0">
@@ -567,7 +641,8 @@
           { id: 27, name: 'Laboratorio 27' },
           { id: 28, name: 'Laboratorio 28' },
           { id: 29, name: 'Laboratorio 29' },
-          { id: 30, name: 'Laboratorio 30' }
+          { id: 30, name: 'Laboratorio 30' },
+          { id: 99, name: 'Salón de clases' }
         ],
 
         teacherPalette: [
@@ -576,18 +651,19 @@
         ],
 
         formData: {
-          labSpace: 'Laboratorio 26',
+          labType: 'Laboratorio 26',
+          classroomNumber: '',
           teacher: '',
-          subject: '',
+          labTech: '',
+          subject: 'Biología',
           date: '',
           startPeriod: '1',
           durationPeriods: '1',
           needsFreshMaterial: false,
           studentsCount: '',
           groupFormat: 'Parejas',
-          materialsList: [
-            { name: '', quantity: '' }
-          ]
+          reagentsList: [{ name: '', concentration: '', volume: '' }],
+          materialsList: [{ name: '', quantity: '' }]
         },
 
         validationMessage: {
@@ -596,7 +672,7 @@
         },
 
         initData() {
-          const saved = localStorage.getItem('lab_bookings_data_v3');
+          const saved = localStorage.getItem('lab_bookings_data_v4');
           if (saved) {
             this.bookings = JSON.parse(saved);
           } else {
@@ -604,18 +680,22 @@
             this.bookings = [
               {
                 id: 1,
-                labSpace: 'Laboratorio 26',
+                labType: 'Laboratorio 26',
+                classroomNumber: '',
                 teacher: 'Dra. María Carmen',
-                subject: 'Biología Celular',
+                labTech: 'Lic. Ana Morales',
+                subject: 'Biología',
                 date: today,
                 startPeriod: '2',
                 durationPeriods: '2',
                 needsFreshMaterial: true,
                 studentsCount: 24,
                 groupFormat: 'Parejas',
+                reagentsList: [
+                  { name: 'Solución Salina', concentration: '0.9%', volume: '500 ml' }
+                ],
                 materialsList: [
-                  { name: 'Microscopios Ópticos', quantity: '12 pzas' },
-                  { name: 'Muestras de Elodea fresca', quantity: '1 envase' }
+                  { name: 'Microscopios Ópticos', quantity: '12 pzas' }
                 ],
                 status: 'Aprobada'
               }
@@ -625,7 +705,7 @@
         },
 
         saveStorage() {
-          localStorage.setItem('lab_bookings_data_v3', JSON.stringify(this.bookings));
+          localStorage.setItem('lab_bookings_data_v4', JSON.stringify(this.bookings));
         },
 
         getTeacherColor(teacherName) {
@@ -638,6 +718,10 @@
           return this.teacherPalette[index];
         },
 
+        getDisplaySpace(item) {
+          return item.labType === 'Salón de clases' && item.classroomNumber ? item.classroomNumber : item.labType;
+        },
+
         getLabStyle(labName) {
           switch(labName) {
             case 'Laboratorio 26': return 'bg-purple-50 border-purple-200 hover:bg-purple-100';
@@ -645,6 +729,7 @@
             case 'Laboratorio 28': return 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100';
             case 'Laboratorio 29': return 'bg-amber-50 border-amber-200 hover:bg-amber-100';
             case 'Laboratorio 30': return 'bg-rose-50 border-rose-200 hover:bg-rose-100';
+            case 'Salón de clases': return 'bg-slate-100 border-slate-300 hover:bg-slate-200';
             default: return 'bg-slate-50 border-slate-200';
           }
         },
@@ -656,8 +741,17 @@
             case 'Laboratorio 28': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
             case 'Laboratorio 29': return 'bg-amber-100 text-amber-800 border-amber-200';
             case 'Laboratorio 30': return 'bg-rose-100 text-rose-800 border-rose-200';
+            case 'Salón de clases': return 'bg-slate-200 text-slate-800 border-slate-300';
             default: return 'bg-slate-100 text-slate-800';
           }
+        },
+
+        addReagentRow() {
+          this.formData.reagentsList.push({ name: '', concentration: '', volume: '' });
+        },
+
+        removeReagentRow(index) {
+          this.formData.reagentsList.splice(index, 1);
         },
 
         addMaterialRow() {
@@ -718,7 +812,7 @@
         getBookingsForSlot(dateStr, period) {
           return this.bookings.filter(b => {
             if (b.date !== dateStr) return false;
-            if (this.selectedLabFilter !== 'ALL' && b.labSpace !== this.selectedLabFilter) return false;
+            if (this.selectedLabFilter !== 'ALL' && b.labType !== this.selectedLabFilter) return false;
             const startP = parseInt(b.startPeriod);
             const durP = parseInt(b.durationPeriods);
             const endP = startP + durP - 1;
@@ -728,7 +822,7 @@
 
         get filteredListBookings() {
           const days = this.weekDays.map(d => d.dateStr);
-          return this.bookings.filter(b => days.includes(b.date) && (this.selectedLabFilter === 'ALL' || b.labSpace === this.selectedLabFilter));
+          return this.bookings.filter(b => days.includes(b.date) && (this.selectedLabFilter === 'ALL' || b.labType === this.selectedLabFilter));
         },
 
         getDailyBookings(dateStr) {
@@ -782,15 +876,18 @@
         openModal() {
           this.editingBookingId = null;
           this.formData = {
-            labSpace: 'Laboratorio 26',
+            labType: 'Laboratorio 26',
+            classroomNumber: '',
             teacher: '',
-            subject: '',
+            labTech: '',
+            subject: 'Biología',
             date: '',
             startPeriod: '1',
             durationPeriods: '1',
             needsFreshMaterial: false,
             studentsCount: '',
             groupFormat: 'Parejas',
+            reagentsList: [{ name: '', concentration: '', volume: '' }],
             materialsList: [{ name: '', quantity: '' }]
           };
           this.validationMessage = { isValid: false, text: '' };
@@ -803,6 +900,9 @@
           this.formData = JSON.parse(JSON.stringify(item));
           if (!this.formData.materialsList || this.formData.materialsList.length === 0) {
             this.formData.materialsList = [{ name: '', quantity: '' }];
+          }
+          if (!this.formData.reagentsList) {
+            this.formData.reagentsList = [{ name: '', concentration: '', volume: '' }];
           }
           this.validateRules();
           this.isModalOpen = true;
@@ -828,6 +928,7 @@
           if (!this.validationMessage.isValid) return;
 
           const cleanMaterials = this.formData.materialsList.filter(m => m.name.trim() !== '');
+          const cleanReagents = this.formData.reagentsList.filter(r => r.name.trim() !== '');
 
           if (this.editingBookingId) {
             const index = this.bookings.findIndex(b => b.id === this.editingBookingId);
@@ -836,6 +937,7 @@
                 ...this.formData,
                 id: this.editingBookingId,
                 materialsList: cleanMaterials,
+                reagentsList: cleanReagents,
                 status: 'Aprobada'
               };
             }
@@ -844,6 +946,7 @@
               id: Date.now(),
               ...this.formData,
               materialsList: cleanMaterials,
+              reagentsList: cleanReagents,
               status: 'Aprobada'
             };
             this.bookings.push(newBooking);
@@ -902,9 +1005,10 @@
             return;
           }
 
-          let csvContent = "data:text/csv;charset=utf-8,ID,Laboratorio,Profesor,Materia,Fecha,Periodo_Inicio,Duracion_Periodos,Alumnos,Formato,Material_Fresco,Estado\n";
+          let csvContent = "data:text/csv;charset=utf-8,ID,Ubicacion,Profesor,Laboratorista,Materia,Fecha,Periodo_Inicio,Duracion_Periodos,Alumnos,Formato,Material_Fresco,Estado\n";
           this.bookings.forEach(b => {
-            csvContent += `${b.id},"${b.labSpace}","${b.teacher}","${b.subject}",${b.date},${b.startPeriod},${b.durationPeriods},${b.studentsCount},"${b.groupFormat}",${b.needsFreshMaterial ? 'SI' : 'NO'},${b.status}\n`;
+            const space = b.labType === 'Salón de clases' ? b.classroomNumber : b.labType;
+            csvContent += `${b.id},"${space}","${b.teacher}","${b.labTech || ''}","${b.subject}",${b.date},${b.startPeriod},${b.durationPeriods},${b.studentsCount},"${b.groupFormat}",${b.needsFreshMaterial ? 'SI' : 'NO'},${b.status}\n`;
           });
 
           const encodedUri = encodeURI(csvContent);
