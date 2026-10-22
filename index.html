@@ -64,19 +64,25 @@
         </div>
 
         <!-- Acciones principales -->
-        <div class="flex items-center gap-3">
-          <!-- Indicador de estado de sincronización -->
-          <div class="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 text-xs">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Estado de sincronización -->
+          <div class="hidden md:flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 text-xs">
             <span class="w-2 h-2 rounded-full" :class="isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'"></span>
             <span class="text-white font-medium" x-text="isLoading ? 'Sincronizando...' : 'En nube (Tiempo Real)'"></span>
           </div>
 
-          <button @click="openDailyPrintModal()" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-medium text-sm px-3.5 py-2 rounded-lg transition border border-white/20">
-            <i class="ph ph-printer text-lg"></i>
-            <span>Imprimir Día / PDF</span>
+          <button @click="openFreshMaterialModal()" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs sm:text-sm px-3 py-2 rounded-lg transition border border-amber-400">
+            <i class="ph ph-plant text-base"></i>
+            <span>PDF Material Fresco</span>
           </button>
-          <button @click="openModal()" class="inline-flex items-center gap-2 bg-white text-brand-700 hover:bg-rose-50 font-bold text-sm px-4 py-2 rounded-lg transition shadow-sm">
-            <i class="ph ph-plus-circle text-lg"></i>
+
+          <button @click="openDailyPrintModal()" class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm px-3 py-2 rounded-lg transition border border-white/20">
+            <i class="ph ph-printer text-base"></i>
+            <span>Reportes PDF</span>
+          </button>
+
+          <button @click="openModal()" class="inline-flex items-center gap-1.5 bg-white text-brand-700 hover:bg-rose-50 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-lg transition shadow-sm">
+            <i class="ph ph-plus-circle text-base"></i>
             <span>Agendar Práctica</span>
           </button>
         </div>
@@ -95,7 +101,7 @@
         </div>
         <div>
           <h3 class="text-sm font-semibold text-brand-900">Anticipación General (48 Horas)</h3>
-          <p class="text-xs text-brand-700 mt-0.5">Todas las prácticas estándar deben agendarse con un mínimo estricto de 48 horas de antelación.</p>
+          <p class="text-xs text-brand-700 mt-0.5">Mínimo 48h de antelación. Solicitudes con menor tiempo se registrarán como <strong>Extemporáneas</strong>.</p>
         </div>
       </div>
 
@@ -105,7 +111,7 @@
         </div>
         <div>
           <h3 class="text-sm font-semibold text-amber-900">Insumos y Material Fresco</h3>
-          <p class="text-xs text-amber-700 mt-0.5">Requiere pedir con 1 semana de anticipación. Límite: <strong>Miércoles antes de las 12:00 PM</strong> previo a la semana de práctica.</p>
+          <p class="text-xs text-amber-700 mt-0.5">Mínimo 2 días de anticipación y solicitarse antes del <strong>Miércoles a las 12:00 PM</strong> previo a la semana correspondiente.</p>
         </div>
       </div>
     </div>
@@ -194,10 +200,13 @@
                              class="p-2 rounded-lg border text-left cursor-pointer transition shadow-2xs group hover:scale-[1.02]"
                              :class="getLabStyle(item.labType)">
                           
-                          <!-- Distintivo de Espacio -->
-                          <div class="flex items-center justify-between mb-1">
+                          <!-- Distintivo de Espacio y Extemporáneo -->
+                          <div class="flex items-center justify-between mb-1 gap-1 flex-wrap">
                             <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
-                            <span x-show="item.needsFreshMaterial" title="Requiere Material Fresco" class="text-amber-700"><i class="ph ph-plant-bold text-xs"></i></span>
+                            <div class="flex items-center gap-1">
+                              <span x-show="item.isExtemp" class="text-[8px] font-bold px-1 py-0.2 rounded bg-rose-600 text-white uppercase" title="Práctica Extemporánea">Extemporánea</span>
+                              <span x-show="item.needsFreshMaterial" title="Requiere Material Fresco" class="text-amber-700"><i class="ph ph-plant-bold text-xs"></i></span>
+                            </div>
                           </div>
 
                           <div class="font-bold truncate text-[11px] text-slate-900" x-text="item.subject"></div>
@@ -226,17 +235,22 @@
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <th class="p-4">Orden de Solicitud</th>
               <th class="p-4">Fecha y Periodo</th>
               <th class="p-4">Ubicación</th>
               <th class="p-4">Profesor / Asignatura</th>
               <th class="p-4">Laboratorista</th>
-              <th class="p-4">Alumnos / Formato</th>
+              <th class="p-4">Estatus</th>
               <th class="p-4 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 text-sm">
-            <template x-for="item in filteredListBookings" :key="item.id">
+            <template x-for="(item, index) in sortedListBookings" :key="item.id">
               <tr class="hover:bg-slate-50/80 transition">
+                <td class="p-4 whitespace-nowrap text-xs font-bold text-slate-400">
+                  <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs" x-text="'#' + (index + 1)"></span>
+                  <span class="block text-[10px] font-normal text-slate-400 mt-0.5" x-text="formatCreatedAt(item.createdAt)"></span>
+                </td>
                 <td class="p-4 whitespace-nowrap">
                   <div class="font-medium text-slate-900" x-text="formatDisplayDate(item.date)"></div>
                   <div class="text-xs text-slate-500" x-text="'Periodo ' + item.startPeriod + (item.durationPeriods > 1 ? ' al ' + (parseInt(item.startPeriod) + parseInt(item.durationPeriods) - 1) : '')"></div>
@@ -251,14 +265,25 @@
                     <span x-text="item.teacher" class="text-slate-600"></span>
                   </div>
                 </td>
-                <td class="p-4 font-medium text-xs text-slate-700" x-text="item.labTech || 'Sin asignar'"></td>
+                <td class="p-4 font-medium text-xs text-slate-700" x-text="item.labTech || 'Opcional (Sin indicar)'"></td>
                 <td class="p-4 whitespace-nowrap">
-                  <div class="text-slate-800 font-medium" x-text="item.studentsCount + ' alumnos'"></div>
-                  <div class="text-xs text-slate-500" x-text="item.groupFormat"></div>
+                  <template x-if="item.isExtemp">
+                    <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                      <i class="ph ph-warning-circle"></i> Extemporánea
+                    </span>
+                  </template>
+                  <template x-if="!item.isExtemp">
+                    <span class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <i class="ph ph-check-circle"></i> A Tiempo
+                    </span>
+                  </template>
                 </td>
                 <td class="p-4 text-right whitespace-nowrap">
                   <button @click="viewDetail(item)" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition" title="Ver Detalle">
                     <i class="ph ph-eye text-lg"></i>
+                  </button>
+                  <button @click="printSingleBooking(item)" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition" title="Imprimir Práctica">
+                    <i class="ph ph-printer text-lg"></i>
                   </button>
                   <button @click="editBooking(item)" class="text-slate-400 hover:text-brand-600 p-1.5 rounded-lg hover:bg-rose-50 transition" title="Editar">
                     <i class="ph ph-pencil-simple text-lg"></i>
@@ -330,8 +355,8 @@
             <input type="text" x-model="formData.teacher" required placeholder="Ej. Dr. Roberto Gómez" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratorista que Atiende *</label>
-            <input type="text" x-model="formData.labTech" required placeholder="Ej. Lic. Ana Morales" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratorista que Atiende <span class="text-slate-400 font-normal">(Opcional)</span></label>
+            <input type="text" x-model="formData.labTech" placeholder="Ej. Lic. Ana Morales" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
           </div>
         </div>
 
@@ -372,13 +397,14 @@
             <span class="text-sm font-semibold text-slate-800">¿Requiere Material Fresco o Insumos Especiales?</span>
           </label>
           <p class="text-xs text-slate-500 pl-7">
-            Límite: **Miércoles antes de las 12:00 PM** previo a la semana correspondiente.
+            Requisito: Mínimo 2 días de anticipación y antes del <strong>Miércoles a las 12:00 PM</strong> previo a la semana correspondiente.
           </p>
         </div>
 
+        <!-- Mensaje Informativo / Extemporáneo -->
         <div x-show="validationMessage.text" class="p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 border"
-             :class="validationMessage.isValid ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'">
-          <i class="ph text-lg shrink-0" :class="validationMessage.isValid ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-rose-600'"></i>
+             :class="validationMessage.isValid ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'">
+          <i class="ph text-lg shrink-0" :class="validationMessage.isValid ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-amber-600'"></i>
           <span x-html="validationMessage.text"></span>
         </div>
 
@@ -397,6 +423,18 @@
               <option value="Demostrativa / Plenaria">Demostrativa (Grupo Completo)</option>
             </select>
           </div>
+        </div>
+
+        <!-- ADJUNTAR DOCUMENTO (OPCIONAL) -->
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-2">
+          <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="ph ph-file-arrow-up text-brand-600 text-base"></i>
+            <span>Adjuntar Guía / Documento de Práctica <span class="text-slate-400 font-normal">(Opcional)</span></span>
+          </label>
+          <input type="file" @change="handleFileUpload($event)" accept=".pdf,.doc,.docx,.png,.jpg" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+          <p x-show="formData.fileName" class="text-xs text-emerald-700 font-medium flex items-center gap-1">
+            <i class="ph ph-check-bold"></i> Archivo listo: <span x-text="formData.fileName"></span>
+          </p>
         </div>
 
         <!-- TABLA 1: REACTIVOS Y SOLUCIONES -->
@@ -452,7 +490,7 @@
 
         <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
           <button type="button" @click="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-          <button type="submit" :disabled="!validationMessage.isValid || isLoading" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento')">
+          <button type="submit" :disabled="isLoading" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento')">
           </button>
         </div>
 
@@ -460,92 +498,165 @@
     </div>
   </div>
 
-  <!-- MODAL DE IMPRESIÓN -->
+  <!-- MODAL DE IMPRESIÓN REPORTES GENERALES -->
   <div x-show="isPrintModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
-      <h3 class="text-base font-bold text-slate-900">Imprimir Hoja Diaria de Trabajo</h3>
-      <p class="text-xs text-slate-500">Selecciona el día para generar el reporte en PDF o imprimir las prácticas programadas:</p>
+      <h3 class="text-base font-bold text-slate-900">Generar Reporte PDF</h3>
+      <p class="text-xs text-slate-500">Selecciona el tipo de reporte e intervalo que deseas imprimir:</p>
       
       <div>
-        <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha a imprimir:</label>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Reporte:</label>
+        <select x-model="reportType" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 mb-3">
+          <option value="Diario">Reporte Diario</option>
+          <option value="Semanal">Reporte Semanal</option>
+          <option value="Mensual">Reporte Mensual</option>
+        </select>
+
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha Base:</label>
         <input type="date" x-model="printDate" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
       </div>
 
       <div class="flex justify-end gap-2 pt-2">
         <button @click="isPrintModalOpen = false" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
-        <button @click="triggerPrint()" class="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm">Generar / Imprimir</button>
+        <button @click="triggerPrintReport()" class="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm">Generar PDF / Imprimir</button>
       </div>
     </div>
   </div>
 
-  <!-- REPORTE DE IMPRESIÓN -->
+  <!-- MODAL DE MATERIAL FRESCO EN PDF -->
+  <div x-show="isFreshMaterialModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+      <h3 class="text-base font-bold text-amber-800 flex items-center gap-2">
+        <i class="ph ph-plant"></i> Reporte de Material Fresco
+      </h3>
+      <p class="text-xs text-slate-500">Genera la lista consolidada de insumos frescos requeridos para la semana:</p>
+      
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Semana del reporte:</label>
+        <input type="date" x-model="freshMaterialPrintDate" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button @click="isFreshMaterialModalOpen = false" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+        <button @click="triggerFreshMaterialPrint()" class="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-sm">Generar Lista Insumos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTE DE IMPRESIÓN (PDF GENERAL / INDIVIDUAL / FRESCO) -->
   <div class="hidden print-only p-8 text-slate-900">
+    <!-- Encabezado genérico flexible -->
     <div class="border-b-2 border-brand-600 pb-4 mb-6 flex justify-between items-end">
       <div>
-        <h1 class="text-2xl font-bold uppercase text-brand-700 tracking-wide">Bitácora de Laboratorios</h1>
-        <p class="text-sm font-medium text-slate-600">Reporte Diario de Agendamiento e Insumos</p>
+        <h1 class="text-2xl font-bold uppercase text-brand-700 tracking-wide" x-text="printHeaderTitle"></h1>
+        <p class="text-sm font-medium text-slate-600" x-text="printHeaderSubtitle"></p>
       </div>
       <div class="text-right">
-        <div class="text-sm font-bold" x-text="formatDisplayDate(printDate)"></div>
-        <div class="text-xs text-slate-500" x-text="'Generado el: ' + new Date().toLocaleDateString('es-ES')"></div>
+        <div class="text-sm font-bold" x-text="printHeaderDate"></div>
+        <div class="text-xs text-slate-500" x-text="'Impreso el: ' + new Date().toLocaleDateString('es-ES')"></div>
       </div>
     </div>
 
-    <template x-for="item in getDailyBookings(printDate)" :key="item.id">
-      <div class="mb-6 p-4 border border-slate-300 rounded-lg space-y-3">
-        <div class="flex justify-between items-start border-b border-slate-200 pb-2">
-          <div>
-            <span class="text-xs font-extrabold uppercase px-2 py-0.5 rounded border" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
-            <h2 class="text-base font-bold text-slate-900 mt-1" x-text="item.subject"></h2>
-            <p class="text-xs text-slate-700" x-text="'Profesor: ' + item.teacher + ' | Laboratorista: ' + (item.labTech || 'N/A')"></p>
-          </div>
-          <div class="text-right">
-            <span class="text-xs font-bold bg-slate-100 px-2.5 py-1 rounded border border-slate-300" x-text="'Periodo ' + item.startPeriod + (item.durationPeriods > 1 ? ' - ' + (parseInt(item.startPeriod) + parseInt(item.durationPeriods) - 1) : '')"></span>
-            <p class="text-xs text-slate-600 mt-1" x-text="item.studentsCount + ' alumnos (' + item.groupFormat + ')'"></p>
-          </div>
-        </div>
+    <!-- MODO 1: PRACTICAS REGULARES / REPORTES -->
+    <template x-if="printMode === 'standard'">
+      <div>
+        <template x-for="item in activePrintBookings" :key="item.id">
+          <div class="mb-6 p-4 border border-slate-300 rounded-lg space-y-3">
+            <div class="flex justify-between items-start border-b border-slate-200 pb-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-extrabold uppercase px-2 py-0.5 rounded border" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
+                  <span x-show="item.isExtemp" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-600 text-white uppercase">Práctica Extemporánea</span>
+                </div>
+                <h2 class="text-base font-bold text-slate-900 mt-1" x-text="item.subject"></h2>
+                <p class="text-xs text-slate-700" x-text="'Profesor: ' + item.teacher + (item.labTech ? ' | Laboratorista: ' + item.labTech : '')"></p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold bg-slate-100 px-2.5 py-1 rounded border border-slate-300" x-text="formatDisplayDate(item.date) + ' - Periodo ' + item.startPeriod"></span>
+                <p class="text-xs text-slate-600 mt-1" x-text="item.studentsCount + ' alumnos (' + item.groupFormat + ')'"></p>
+              </div>
+            </div>
 
-        <div x-show="item.reagentsList && item.reagentsList.length > 0">
-          <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Reactivos y Soluciones:</h4>
-          <table class="w-full text-xs border border-slate-300 mb-3">
-            <thead class="bg-slate-100 border-b border-slate-300">
-              <tr>
-                <th class="p-1.5 text-left border-r border-slate-300">Reactivo / Solución</th>
-                <th class="p-1.5 text-left border-r border-slate-300 w-28">Concentración</th>
-                <th class="p-1.5 text-left w-28">Volumen</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-              <template x-for="reag in item.reagentsList" :key="reag.name">
-                <tr>
-                  <td class="p-1.5 border-r border-slate-200" x-text="reag.name"></td>
-                  <td class="p-1.5 border-r border-slate-200 font-medium" x-text="reag.concentration"></td>
-                  <td class="p-1.5 font-medium" x-text="reag.volume"></td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
+            <div x-show="item.reagentsList && item.reagentsList.length > 0">
+              <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Reactivos y Soluciones:</h4>
+              <table class="w-full text-xs border border-slate-300 mb-3">
+                <thead class="bg-slate-100 border-b border-slate-300">
+                  <tr>
+                    <th class="p-1.5 text-left border-r border-slate-300">Reactivo / Solución</th>
+                    <th class="p-1.5 text-left border-r border-slate-300 w-28">Concentración</th>
+                    <th class="p-1.5 text-left w-28">Volumen</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  <template x-for="reag in item.reagentsList" :key="reag.name">
+                    <tr>
+                      <td class="p-1.5 border-r border-slate-200" x-text="reag.name"></td>
+                      <td class="p-1.5 border-r border-slate-200 font-medium" x-text="reag.concentration"></td>
+                      <td class="p-1.5 font-medium" x-text="reag.volume"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
 
-        <div>
-          <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Materiales y Equipo:</h4>
-          <table class="w-full text-xs border border-slate-300">
-            <thead class="bg-slate-100 border-b border-slate-300">
+            <div>
+              <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Materiales y Equipo:</h4>
+              <table class="w-full text-xs border border-slate-300">
+                <thead class="bg-slate-100 border-b border-slate-300">
+                  <tr>
+                    <th class="p-1.5 text-left border-r border-slate-300">Material / Equipo</th>
+                    <th class="p-1.5 text-left w-36">Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  <template x-for="mat in item.materialsList" :key="mat.name">
+                    <tr>
+                      <td class="p-1.5 border-r border-slate-200" x-text="mat.name"></td>
+                      <td class="p-1.5 font-medium" x-text="mat.quantity"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </template>
+      </div>
+    </template>
+
+    <!-- MODO 2: REPORTE DE MATERIAL FRESCO CONSOLIDADO -->
+    <template x-if="printMode === 'freshMaterial'">
+      <div>
+        <table class="w-full text-xs border border-slate-300">
+          <thead class="bg-slate-100 border-b border-slate-300 font-bold uppercase">
+            <tr>
+              <th class="p-2 text-left border-r border-slate-300">Fecha Práctica</th>
+              <th class="p-2 text-left border-r border-slate-300">Ubicación</th>
+              <th class="p-2 text-left border-r border-slate-300">Materia / Profesor</th>
+              <th class="p-2 text-left border-r border-slate-300">Material Fresco Requerido</th>
+              <th class="p-2 text-left">Estatus Solicitud</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <template x-for="item in activeFreshPrintBookings" :key="item.id">
               <tr>
-                <th class="p-1.5 text-left border-r border-slate-300">Material / Equipo</th>
-                <th class="p-1.5 text-left w-36">Cantidad</th>
+                <td class="p-2 border-r border-slate-200 font-semibold" x-text="formatDisplayDate(item.date)"></td>
+                <td class="p-2 border-r border-slate-200" x-text="getDisplaySpace(item)"></td>
+                <td class="p-2 border-r border-slate-200">
+                  <div class="font-bold" x-text="item.subject"></div>
+                  <div class="text-[11px] text-slate-600" x-text="item.teacher"></div>
+                </td>
+                <td class="p-2 border-r border-slate-200">
+                  <ul class="list-disc pl-4 space-y-0.5">
+                    <template x-for="mat in item.materialsList" :key="mat.name">
+                      <li x-text="mat.name + ' (' + mat.quantity + ')'"></li>
+                    </template>
+                  </ul>
+                </td>
+                <td class="p-2 font-bold" :class="item.isExtemp ? 'text-rose-700' : 'text-emerald-700'" x-text="item.isExtemp ? 'Solicitud Extemporánea' : 'Solicitado a tiempo'"></td>
               </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-              <template x-for="mat in item.materialsList" :key="mat.name">
-                <tr>
-                  <td class="p-1.5 border-r border-slate-200" x-text="mat.name"></td>
-                  <td class="p-1.5 font-medium" x-text="mat.quantity"></td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
+            </template>
+          </tbody>
+        </table>
       </div>
     </template>
   </div>
@@ -557,13 +668,16 @@
         <div>
           <div class="p-6 bg-slate-50 border-b border-slate-200 flex justify-between items-start">
             <div>
-              <span class="inline-block px-2.5 py-0.5 rounded text-xs font-extrabold mb-1 uppercase" :class="getLabBadgeStyle(selectedBooking.labType)" x-text="getDisplaySpace(selectedBooking)"></span>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="inline-block px-2.5 py-0.5 rounded text-xs font-extrabold uppercase" :class="getLabBadgeStyle(selectedBooking.labType)" x-text="getDisplaySpace(selectedBooking)"></span>
+                <span x-show="selectedBooking.isExtemp" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-600 text-white uppercase">Extemporánea</span>
+              </div>
               <h3 class="text-lg font-bold text-slate-900" x-text="selectedBooking.subject"></h3>
               <div class="text-xs font-medium flex items-center gap-1.5 mt-1">
                 <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" :style="'background-color:' + getTeacherColor(selectedBooking.teacher)"></span>
                 <span x-text="'Profesor: ' + selectedBooking.teacher" class="text-slate-700"></span>
               </div>
-              <div class="text-xs text-slate-500 mt-0.5" x-text="'Atiende: ' + (selectedBooking.labTech || 'Sin especificar')"></div>
+              <div class="text-xs text-slate-500 mt-0.5" x-text="'Atiende: ' + (selectedBooking.labTech || 'Opcional (Sin especificar)')"></div>
             </div>
             <button @click="selectedBooking = null" class="text-slate-400 hover:text-slate-600">
               <i class="ph ph-x text-xl"></i>
@@ -593,6 +707,15 @@
               </div>
             </div>
 
+            <!-- Archivo Adjunto -->
+            <div x-show="selectedBooking.fileData">
+              <span class="text-slate-400 block font-medium mb-1">Guía Adjunta:</span>
+              <a :href="selectedBooking.fileData" :download="selectedBooking.fileName || 'guia_practica'" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition">
+                <i class="ph ph-download-simple text-base"></i>
+                <span x-text="selectedBooking.fileName || 'Descargar Guía Adjunta'"></span>
+              </a>
+            </div>
+
             <div x-show="selectedBooking.reagentsList && selectedBooking.reagentsList.length > 0">
               <span class="text-slate-400 block font-medium mb-1">Reactivos y Soluciones:</span>
               <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5">
@@ -620,6 +743,9 @@
 
           <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
             <div class="flex gap-2">
+              <button @click="printSingleBooking(selectedBooking)" class="px-3 py-1.5 bg-slate-200 text-slate-800 hover:bg-slate-300 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+                <i class="ph ph-printer text-sm"></i> Imprimir Práctica
+              </button>
               <button @click="editBooking(selectedBooking)" class="px-3 py-1.5 bg-rose-100 text-brand-700 hover:bg-rose-200 text-xs font-semibold rounded-lg transition flex items-center gap-1">
                 <i class="ph ph-pencil-simple text-sm"></i> Editar
               </button>
@@ -645,12 +771,23 @@
         currentWeekOffset: 0,
         isModalOpen: false,
         isPrintModalOpen: false,
+        isFreshMaterialModalOpen: false,
         isLoading: false,
         selectedBooking: null,
         editingBookingId: null,
         selectedLabFilter: 'ALL',
         printDate: new Date().toISOString().split('T')[0],
+        freshMaterialPrintDate: new Date().toISOString().split('T')[0],
+        reportType: 'Diario',
         bookings: [],
+
+        // Variables de Encabezados de Impresión
+        printMode: 'standard', // 'standard' o 'freshMaterial'
+        printHeaderTitle: 'Reporte Diario',
+        printHeaderSubtitle: 'Bitácora de Agendamiento e Insumos de Laboratorio',
+        printHeaderDate: '',
+        activePrintBookings: [],
+        activeFreshPrintBookings: [],
         
         labOptions: [
           { id: 26, name: 'Laboratorio 26' },
@@ -679,7 +816,9 @@
           studentsCount: '',
           groupFormat: 'Parejas',
           reagentsList: [{ name: '', concentration: '', volume: '' }],
-          materialsList: [{ name: '', quantity: '' }]
+          materialsList: [{ name: '', quantity: '' }],
+          fileData: null,
+          fileName: ''
         },
 
         validationMessage: {
@@ -689,22 +828,17 @@
 
         async initData() {
           await this.fetchFromCloud();
-          
-          // Auto-actualizar cada 30 segundos
           setInterval(() => {
             this.fetchFromCloud(true);
           }, 30000);
         },
 
-        // LEER DATOS DESDE LA NUBE
         async fetchFromCloud(silent = false) {
           if (!silent) this.isLoading = true;
           try {
             const res = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}/latest`, {
               method: 'GET',
-              headers: {
-                'X-Master-Key': this.masterKey
-              }
+              headers: { 'X-Master-Key': this.masterKey }
             });
             if (res.ok) {
               const json = await res.json();
@@ -721,7 +855,6 @@
           }
         },
 
-        // GUARDAR DATOS EN LA NUBE
         async saveToCloud() {
           this.isLoading = true;
           try {
@@ -733,9 +866,7 @@
               },
               body: JSON.stringify(this.bookings)
             });
-            if (!res.ok) {
-              throw new Error('Error al guardar en el servidor');
-            }
+            if (!res.ok) throw new Error('Error al guardar en el servidor');
           } catch (e) {
             console.error(e);
             Swal.fire({
@@ -746,6 +877,32 @@
           } finally {
             this.isLoading = false;
           }
+        },
+
+        get sortedListBookings() {
+          // Orden de llegada estricto (por timestamp de creación o ID)
+          return [...this.filteredListBookings].sort((a, b) => (a.createdAt || a.id) - (b.createdAt || b.id));
+        },
+
+        formatCreatedAt(ts) {
+          if (!ts) return 'Fecha N/A';
+          const d = new Date(ts);
+          return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        },
+
+        handleFileUpload(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          if (file.size > 3 * 1024 * 1024) {
+            Swal.fire('Archivo muy grande', 'El archivo no debe exceder 3MB para no saturar la sincronización.', 'warning');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.formData.fileData = e.target.result;
+            this.formData.fileName = file.name;
+          };
+          reader.readAsDataURL(file);
         },
 
         getTeacherColor(teacherName) {
@@ -865,10 +1022,7 @@
           return this.bookings.filter(b => days.includes(b.date) && (this.selectedLabFilter === 'ALL' || b.labType === this.selectedLabFilter));
         },
 
-        getDailyBookings(dateStr) {
-          return this.bookings.filter(b => b.date === dateStr);
-        },
-
+        // REGLAS Y EVALUACIÓN DE EXTEMPORÁNEAS
         validateRules() {
           if (!this.formData.date) {
             this.validationMessage = { isValid: false, text: 'Seleccione una fecha para la práctica.' };
@@ -877,17 +1031,26 @@
 
           const now = new Date();
           const targetDate = new Date(this.formData.date + 'T00:00:00');
-
           const diffHours = (targetDate - now) / (1000 * 60 * 60);
+
+          let isExtemp = false;
+          let messages = [];
+
           if (diffHours < 48) {
-            this.validationMessage = {
-              isValid: false,
-              text: '<strong>Error de Anticipación:</strong> Las prácticas deben agendarse con al menos 48 horas de anticipación.'
-            };
-            return;
+            isExtemp = true;
+            messages.push('Faltan menos de 48h de anticipación.');
           }
 
           if (this.formData.needsFreshMaterial) {
+            const diffDays = (targetDate - now) / (1000 * 60 * 60 * 24);
+            
+            // Regla 1: Mínimo 2 días de anticipación
+            if (diffDays < 2) {
+              isExtemp = true;
+              messages.push('Material fresco requiere mínimo 2 días de anticipación.');
+            }
+
+            // Regla 2: Solicitarse antes del miércoles a las 12:00 PM previo
             const targetDayOfWeek = targetDate.getDay(); 
             const diffToMonday = targetDate.getDate() - targetDayOfWeek + (targetDayOfWeek === 0 ? -6 : 1);
             const practiceMonday = new Date(targetDate);
@@ -899,18 +1062,24 @@
             deadlineWednesday.setHours(12, 0, 0, 0);
 
             if (now > deadlineWednesday) {
-              this.validationMessage = {
-                isValid: false,
-                text: `<strong>Límite de Material Fresco Superado:</strong> Debe solicitarse antes del miércoles a las 12:00 PM previo a la semana correspondiente.`
-              };
-              return;
+              isExtemp = true;
+              messages.push('Material fresco solicitado después del Miércoles 12:00 PM previo.');
             }
           }
 
-          this.validationMessage = {
-            isValid: true,
-            text: '<strong>Solicitud Válida:</strong> Cumple con todos los tiempos requeridos de anticipación.'
-          };
+          this.formData.isExtemp = isExtemp;
+
+          if (isExtemp) {
+            this.validationMessage = {
+              isValid: true,
+              text: `<strong>Práctica Extemporánea:</strong> La práctica se guardará marcada como extemporánea. (${messages.join(' ')})`
+            };
+          } else {
+            this.validationMessage = {
+              isValid: true,
+              text: '<strong>Solicitud a Tiempo:</strong> Cumple con todos los requisitos de anticipación.'
+            };
+          }
         },
 
         openModal() {
@@ -928,7 +1097,10 @@
             studentsCount: '',
             groupFormat: 'Parejas',
             reagentsList: [{ name: '', concentration: '', volume: '' }],
-            materialsList: [{ name: '', quantity: '' }]
+            materialsList: [{ name: '', quantity: '' }],
+            fileData: null,
+            fileName: '',
+            isExtemp: false
           };
           this.validationMessage = { isValid: false, text: '' };
           this.isModalOpen = true;
@@ -957,16 +1129,92 @@
           this.isPrintModalOpen = true;
         },
 
-        triggerPrint() {
+        openFreshMaterialModal() {
+          this.isFreshMaterialModalOpen = true;
+        },
+
+        // IMPRIMIR PRACTICA INDIVIDUAL
+        printSingleBooking(item) {
+          this.printMode = 'standard';
+          this.printHeaderTitle = 'Reporte de Práctica de Laboratorio';
+          this.printHeaderSubtitle = 'Hoja Individual de Trabajo';
+          this.printHeaderDate = this.formatDisplayDate(item.date);
+          this.activePrintBookings = [item];
+          this.selectedBooking = null;
+
+          setTimeout(() => {
+            window.print();
+          }, 300);
+        },
+
+        // IMPRIMIR REPORTES PERIODICOS
+        triggerPrintReport() {
+          this.printMode = 'standard';
           this.isPrintModalOpen = false;
+          
+          const baseDate = new Date(this.printDate + 'T00:00:00');
+          this.printHeaderTitle = `Reporte ${this.reportType}`;
+          this.printHeaderSubtitle = 'Bitácora de Agendamiento e Insumos de Laboratorio';
+
+          if (this.reportType === 'Diario') {
+            this.printHeaderDate = this.formatDisplayDate(this.printDate);
+            this.activePrintBookings = this.bookings.filter(b => b.date === this.printDate);
+          } else if (this.reportType === 'Semanal') {
+            const dayOfWeek = baseDate.getDay();
+            const diffToMonday = baseDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            const monday = new Date(baseDate.setDate(diffToMonday));
+            const saturday = new Date(monday);
+            saturday.setDate(saturday.getDate() + 5);
+
+            const startStr = monday.toISOString().split('T')[0];
+            const endStr = saturday.toISOString().split('T')[0];
+
+            this.printHeaderDate = `${monday.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} al ${saturday.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+            this.activePrintBookings = this.bookings.filter(b => b.date >= startStr && b.date <= endStr);
+          } else if (this.reportType === 'Mensual') {
+            const year = baseDate.getFullYear();
+            const month = baseDate.getMonth();
+            const monthName = baseDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+
+            this.printHeaderDate = monthName.toUpperCase();
+            this.activePrintBookings = this.bookings.filter(b => {
+              const d = new Date(b.date + 'T00:00:00');
+              return d.getFullYear() === year && d.getMonth() === month;
+            });
+          }
+
+          setTimeout(() => {
+            window.print();
+          }, 300);
+        },
+
+        // IMPRIMIR REPORTE DE MATERIAL FRESCO
+        triggerFreshMaterialPrint() {
+          this.printMode = 'freshMaterial';
+          this.isFreshMaterialModalOpen = false;
+
+          const baseDate = new Date(this.freshMaterialPrintDate + 'T00:00:00');
+          const dayOfWeek = baseDate.getDay();
+          const diffToMonday = baseDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+          const monday = new Date(baseDate.setDate(diffToMonday));
+          const saturday = new Date(monday);
+          saturday.setDate(saturday.getDate() + 5);
+
+          const startStr = monday.toISOString().split('T')[0];
+          const endStr = saturday.toISOString().split('T')[0];
+
+          this.printHeaderTitle = 'Reporte de Material Fresco e Insumos';
+          this.printHeaderSubtitle = 'Consolidado Semanal de Requerimientos';
+          this.printHeaderDate = `${monday.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} al ${saturday.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+
+          this.activeFreshPrintBookings = this.bookings.filter(b => b.needsFreshMaterial && b.date >= startStr && b.date <= endStr);
+
           setTimeout(() => {
             window.print();
           }, 300);
         },
 
         async submitForm() {
-          if (!this.validationMessage.isValid) return;
-
           const cleanMaterials = this.formData.materialsList.filter(m => m.name.trim() !== '');
           const cleanReagents = this.formData.reagentsList.filter(r => r.name.trim() !== '');
 
@@ -984,6 +1232,7 @@
           } else {
             const newBooking = {
               id: Date.now(),
+              createdAt: Date.now(), // Orden de llegada
               ...this.formData,
               materialsList: cleanMaterials,
               reagentsList: cleanReagents,
@@ -998,7 +1247,7 @@
           Swal.fire({
             icon: 'success',
             title: this.editingBookingId ? '¡Práctica Actualizada!' : '¡Práctica Agendada!',
-            text: 'Los cambios se guardaron correctamente en la nube para todos los profesores.',
+            text: 'Los cambios se guardaron correctamente en la nube.',
             confirmColor: '#c8102e'
           });
         },
@@ -1045,10 +1294,10 @@
             return;
           }
 
-          let csvContent = "data:text/csv;charset=utf-8,ID,Ubicacion,Profesor,Laboratorista,Materia,Fecha,Periodo_Inicio,Duracion_Periodos,Alumnos,Formato,Material_Fresco,Estado\n";
-          this.bookings.forEach(b => {
+          let csvContent = "data:text/csv;charset=utf-8,ID_Orden,Timestamp,Ubicacion,Profesor,Laboratorista,Materia,Fecha,Periodo_Inicio,Duracion_Periodos,Alumnos,Formato,Material_Fresco,Extemporanea,Estado\n";
+          this.sortedListBookings.forEach(b => {
             const space = b.labType === 'Salón de clases' ? b.classroomNumber : b.labType;
-            csvContent += `${b.id},"${space}","${b.teacher}","${b.labTech || ''}","${b.subject}",${b.date},${b.startPeriod},${b.durationPeriods},${b.studentsCount},"${b.groupFormat}",${b.needsFreshMaterial ? 'SI' : 'NO'},${b.status}\n`;
+            csvContent += `${b.id},"${this.formatCreatedAt(b.createdAt)}","${space}","${b.teacher}","${b.labTech || ''}","${b.subject}",${b.date},${b.startPeriod},${b.durationPeriods},${b.studentsCount},"${b.groupFormat}",${b.needsFreshMaterial ? 'SI' : 'NO'},${b.isExtemp ? 'SI' : 'NO'},${b.status}\n`;
           });
 
           const encodedUri = encodeURI(csvContent);
