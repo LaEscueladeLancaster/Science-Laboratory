@@ -579,7 +579,7 @@
 
             <div class="flex justify-end gap-3 pt-3 border-t border-slate-200 sticky bottom-0 bg-white py-2">
               <button type="button" @click="closeModal()" class="px-5 py-2.5 text-base font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-              <button type="submit" :disabled="isLoading" class="px-6 py-2.5 text-base font-black text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-xs" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento')"></button>
+              <button type="submit" :disabled="isLoading" class="px-6 py-2.5 text-base font-black text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-xs" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar')"></button>
             </div>
 
           </form>
