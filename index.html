@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-50">
+<html lang="es" class="h-full bg-slate-100">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +7,7 @@
   <!-- CSS de Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Iconos Phosphor -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <!-- Alpine.js -->
@@ -27,7 +27,7 @@
               50: '#fff1f2',
               100: '#ffe4e6',
               500: '#e11d48',
-              600: '#c8102e',
+              600: '#c8102e', // Rojo institucional Escuela de Lancaster
               700: '#9f1239',
               800: '#881337',
               900: '#4c0519',
@@ -46,40 +46,43 @@
     }
   </style>
 </head>
-<body class="h-full font-sans text-slate-800 antialiased bg-slate-50 flex flex-col min-h-screen" x-data="appData()" x-init="initData()">
+<body class="h-full font-sans text-slate-800 antialiased bg-slate-100 flex flex-col min-h-screen" x-data="appData()" x-init="initData()">
 
   <!-- ENCABEZADO INSTITUCIONAL -->
-  <header class="bg-brand-600 text-white shadow-md sticky top-0 z-30 no-print">
+  <header class="bg-brand-600 text-white shadow-lg sticky top-0 z-30 no-print border-b border-brand-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16 items-center">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20">
+        <!-- Logo y Nombre Institucional -->
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white border border-white/20 shadow-inner">
             <i class="ph ph-flask text-2xl"></i>
           </div>
           <div>
-            <h1 class="font-bold text-lg text-white leading-tight">Bitácora de Laboratorios</h1>
-            <p class="text-xs text-rose-100 font-medium">La Escuela de Lancaster</p>
+            <h1 class="font-bold text-base sm:text-lg text-white leading-tight uppercase tracking-wide">Bitácora de Laboratorios</h1>
+            <p class="text-xs text-rose-100/90 font-medium tracking-normal">La Escuela de Lancaster</p>
           </div>
         </div>
 
+        <!-- Acciones Principales Header -->
         <div class="flex items-center gap-2 sm:gap-3">
-          <div class="hidden md:flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 text-xs">
+          <!-- Estado Nube -->
+          <div class="hidden md:flex items-center gap-2 bg-brand-700/60 px-3 py-1.5 rounded-md border border-white/15 text-xs">
             <span class="w-2 h-2 rounded-full" :class="isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'"></span>
-            <span class="text-white font-medium" x-text="isLoading ? 'Sincronizando...' : 'En nube (Tiempo Real)'"></span>
+            <span class="text-rose-100 font-medium" x-text="isLoading ? 'Sincronizando...' : 'Conectado'"></span>
           </div>
 
-          <button @click="openFreshMaterialModal()" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs sm:text-sm px-3 py-2 rounded-lg transition border border-amber-400">
+          <button @click="openFreshMaterialModal()" class="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs sm:text-sm px-3.5 py-2 rounded-lg transition shadow-xs border border-amber-500">
             <i class="ph ph-plant text-base"></i>
             <span>PDF Material Fresco</span>
           </button>
 
-          <button @click="openDailyPrintModal()" class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm px-3 py-2 rounded-lg transition border border-white/20">
+          <button @click="openDailyPrintModal()" class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm px-3.5 py-2 rounded-lg transition border border-white/20">
             <i class="ph ph-printer text-base"></i>
             <span>Reportes PDF</span>
           </button>
 
-          <button @click="openModal()" class="inline-flex items-center gap-1.5 bg-white text-brand-700 hover:bg-rose-50 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-lg transition shadow-sm">
-            <i class="ph ph-plus-circle text-base"></i>
+          <button @click="openModal()" class="inline-flex items-center gap-1.5 bg-white text-brand-800 hover:bg-slate-50 font-semibold text-xs sm:text-sm px-4 py-2 rounded-lg transition shadow-md border border-white">
+            <i class="ph ph-plus-circle text-base text-brand-600"></i>
             <span>Agendar Práctica</span>
           </button>
         </div>
@@ -88,49 +91,51 @@
   </header>
 
   <!-- CONTENIDO PRINCIPAL -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 no-print">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 no-print">
 
-    <!-- REGLAS Y REQUISITOS -->
+    <!-- REQUISITOS INSTITUCIONALES SOBRIOS -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 flex gap-3.5 items-start">
-        <div class="p-2 bg-rose-100 text-brand-700 rounded-lg shrink-0">
+      <div class="bg-white border-l-4 border-l-brand-600 border border-slate-200 rounded-r-xl p-4 shadow-xs flex gap-3.5 items-center">
+        <div class="p-2 bg-slate-100 text-brand-700 rounded-lg shrink-0">
           <i class="ph ph-clock text-xl"></i>
         </div>
         <div>
-          <h3 class="text-sm font-semibold text-brand-900">Anticipación General (48 Horas)</h3>
-          <p class="text-xs text-brand-700 mt-0.5">Mínimo 48h de antelación. Solicitudes con menor tiempo se registrarán como <strong>Extemporáneas</strong>.</p>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Anticipación General (48 Horas)</h3>
+          <p class="text-xs text-slate-600 mt-0.5">Mínimo 48h de antelación. Solicitudes con menor tiempo se marcarán como <strong>Extemporáneas</strong>.</p>
         </div>
       </div>
 
-      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3.5 items-start">
-        <div class="p-2 bg-amber-100 text-amber-700 rounded-lg shrink-0">
+      <div class="bg-white border-l-4 border-l-amber-500 border border-slate-200 rounded-r-xl p-4 shadow-xs flex gap-3.5 items-center">
+        <div class="p-2 bg-slate-100 text-amber-700 rounded-lg shrink-0">
           <i class="ph ph-plant text-xl"></i>
         </div>
         <div>
-          <h3 class="text-sm font-semibold text-amber-900">Insumos y Material Fresco</h3>
-          <p class="text-xs text-amber-700 mt-0.5">Mínimo 2 días de anticipación y solicitarse antes del <strong>Miércoles a las 12:00 PM</strong> previo a la semana correspondiente.</p>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Insumos y Material Fresco</h3>
+          <p class="text-xs text-slate-600 mt-0.5">Mínimo 2 días de anticipación y solicitarse antes del <strong>Miércoles a las 12:00 PM</strong> previo.</p>
         </div>
       </div>
     </div>
 
-    <!-- CONTROLES Y FILTROS -->
-    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+    <!-- PANEL DE CONTROLES Y FILTROS -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      <!-- Navegación de Semana -->
       <div class="flex items-center gap-2">
-        <button @click="changeWeek(-1)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition">
-          <i class="ph ph-caret-left text-lg"></i>
+        <button @click="changeWeek(-1)" class="p-2 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 transition" title="Semana Anterior">
+          <i class="ph ph-caret-left text-base"></i>
         </button>
-        <span class="text-sm font-semibold text-slate-700 min-w-[200px] text-center" x-text="weekRangeText"></span>
-        <button @click="changeWeek(1)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition">
-          <i class="ph ph-caret-right text-lg"></i>
+        <span class="text-xs sm:text-sm font-bold text-slate-800 min-w-[210px] text-center uppercase tracking-wide" x-text="weekRangeText"></span>
+        <button @click="changeWeek(1)" class="p-2 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 transition" title="Semana Siguiente">
+          <i class="ph ph-caret-right text-base"></i>
         </button>
-        <button @click="resetToCurrentWeek()" class="ml-2 text-xs font-medium text-brand-600 hover:text-brand-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-md transition">
+        <button @click="resetToCurrentWeek()" class="ml-2 text-xs font-semibold text-brand-700 hover:text-brand-900 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-lg transition">
           Semana Actual
         </button>
       </div>
 
-      <div class="flex items-center gap-2 w-full lg:w-auto">
-        <label class="text-xs font-medium text-slate-500 shrink-0">Espacio:</label>
-        <select x-model="selectedLabFilter" class="text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 focus:ring-2 focus:ring-brand-500">
+      <!-- Filtro por Ubicación -->
+      <div class="flex items-center gap-2.5 w-full lg:w-auto">
+        <label class="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0">Ubicación:</label>
+        <select x-model="selectedLabFilter" class="text-xs font-medium bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-slate-800 focus:ring-2 focus:ring-brand-600 focus:border-brand-600">
           <option value="ALL">Todos los Espacios</option>
           <template x-for="lab in labOptions" :key="lab.id">
             <option :value="lab.name" x-text="lab.name"></option>
@@ -138,41 +143,42 @@
         </select>
       </div>
 
-      <div class="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
-        <div class="flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50">
-          <button @click="currentView = 'calendar'" :class="currentView === 'calendar' ? 'bg-white shadow-xs text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 text-xs rounded-md transition flex items-center gap-1.5">
+      <!-- Vistas y Descarga -->
+      <div class="flex items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end">
+        <div class="flex items-center border border-slate-200 rounded-lg p-1 bg-slate-100">
+          <button @click="currentView = 'calendar'" :class="currentView === 'calendar' ? 'bg-white shadow-xs text-slate-900 font-bold' : 'text-slate-600 hover:text-slate-900'" class="px-3 py-1 text-xs rounded-md transition flex items-center gap-1.5">
             <i class="ph ph-calendar-blank"></i>
             <span>Calendario</span>
           </button>
-          <button @click="currentView = 'list'" :class="currentView === 'list' ? 'bg-white shadow-xs text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 text-xs rounded-md transition flex items-center gap-1.5">
+          <button @click="currentView = 'list'" :class="currentView === 'list' ? 'bg-white shadow-xs text-slate-900 font-bold' : 'text-slate-600 hover:text-slate-900'" class="px-3 py-1 text-xs rounded-md transition flex items-center gap-1.5">
             <i class="ph ph-list-bullets"></i>
             <span>Lista</span>
           </button>
         </div>
 
-        <button @click="fetchFromCloud()" class="text-xs font-medium text-slate-600 hover:text-slate-800 border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+        <button @click="fetchFromCloud()" class="text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-300 bg-white px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
           <i class="ph ph-arrows-clockwise text-sm" :class="isLoading ? 'animate-spin' : ''"></i>
           <span>Actualizar</span>
         </button>
 
-        <button @click="exportCSV()" class="text-xs font-medium text-slate-600 hover:text-slate-800 border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+        <button @click="exportCSV()" class="text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-300 bg-white px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
           <i class="ph ph-download-simple"></i>
           <span>Exportar</span>
         </button>
       </div>
     </div>
 
-    <!-- CALENDARIO POR PERIODOS -->
-    <div x-show="currentView === 'calendar'" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <!-- VISTA CALENDARIO POR PERIODOS -->
+    <div x-show="currentView === 'calendar'" class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full border-collapse text-left min-w-[900px]">
+        <table class="w-full border-collapse text-left min-w-[950px]">
           <thead>
-            <tr class="bg-slate-50 border-b border-slate-200">
-              <th class="p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-28 text-center border-r border-slate-200">Periodo</th>
+            <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+              <th class="p-3 text-xs font-bold uppercase tracking-wider w-28 text-center border-r border-slate-200">Periodo</th>
               <template x-for="day in weekDays" :key="day.dateStr">
-                <th class="p-3 text-center border-r border-slate-200 last:border-r-0" :class="day.isToday ? 'bg-rose-50/50' : ''">
-                  <div class="text-xs font-medium text-slate-500" x-text="day.dayName"></div>
-                  <div class="text-sm font-bold text-slate-800 mt-0.5" x-text="day.formattedDate"></div>
+                <th class="p-3 text-center border-r border-slate-200 last:border-r-0" :class="day.isToday ? 'bg-brand-50/70' : ''">
+                  <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500" x-text="day.dayName"></div>
+                  <div class="text-sm font-extrabold text-slate-800 mt-0.5" x-text="day.formattedDate"></div>
                 </th>
               </template>
             </tr>
@@ -180,28 +186,28 @@
           <tbody class="divide-y divide-slate-200 text-xs">
             <template x-for="period in [1,2,3,4,5,6,7,8]" :key="period">
               <tr>
-                <td class="p-3 font-semibold text-slate-700 text-center bg-slate-50 border-r border-slate-200">
+                <td class="p-3 font-bold text-slate-700 text-center bg-slate-50 border-r border-slate-200">
                   <div class="font-bold text-slate-900" x-text="'Periodo ' + period"></div>
                 </td>
 
                 <template x-for="day in weekDays" :key="day.dateStr">
-                  <td class="p-2 border-r border-slate-200 last:border-r-0 align-top h-28 hover:bg-slate-50/50 transition relative" :class="day.isToday ? 'bg-rose-50/20' : ''">
+                  <td class="p-2 border-r border-slate-200 last:border-r-0 align-top h-28 hover:bg-slate-50/60 transition" :class="day.isToday ? 'bg-brand-50/20' : ''">
                     <div class="space-y-1.5">
                       <template x-for="item in getBookingsForSlot(day.dateStr, period)" :key="item.id">
-                        <div @click="viewDetail(item)" class="p-2 rounded-lg border text-left cursor-pointer transition shadow-2xs group hover:scale-[1.02]" :class="getLabStyle(item.labType)">
+                        <div @click="viewDetail(item)" class="p-2 rounded-lg border text-left cursor-pointer transition shadow-xs group hover:border-slate-400 bg-white" :class="getLabStyle(item.labType)">
                           <div class="flex items-center justify-between mb-1 gap-1 flex-wrap">
-                            <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
+                            <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
                             <div class="flex items-center gap-1">
-                              <span x-show="item.isExtemp" class="text-[8px] font-bold px-1 py-0.2 rounded bg-rose-600 text-white uppercase">Extemporánea</span>
+                              <span x-show="item.isExtemp" class="text-[8px] font-bold px-1.5 py-0.5 rounded bg-brand-600 text-white uppercase tracking-wider">Extemporánea</span>
                               <span x-show="item.needsFreshMaterial" title="Requiere Material Fresco" class="text-amber-700"><i class="ph ph-plant-bold text-xs"></i></span>
                             </div>
                           </div>
 
                           <div class="font-bold truncate text-[11px] text-slate-900" x-text="item.subject"></div>
                           
-                          <div class="text-[10px] font-medium truncate mt-0.5 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full inline-block shrink-0" :style="'background-color:' + getTeacherColor(item.teacher)"></span>
-                            <span x-text="item.teacher" class="text-slate-700"></span>
+                          <div class="text-[10px] font-medium truncate mt-1 flex items-center gap-1.5 text-slate-600">
+                            <span class="w-2 h-2 rounded-full inline-block shrink-0 border border-black/10" :style="'background-color:' + getTeacherColor(item.teacher)"></span>
+                            <span x-text="item.teacher" class="font-medium text-slate-700"></span>
                           </div>
                         </div>
                       </template>
@@ -216,59 +222,59 @@
     </div>
 
     <!-- VISTA LISTA -->
-    <div x-show="currentView === 'list'" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div x-show="currentView === 'list'" class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              <th class="p-4">Orden</th>
-              <th class="p-4">Fecha y Periodo</th>
-              <th class="p-4">Ubicación</th>
-              <th class="p-4">Profesor / Asignatura</th>
-              <th class="p-4">Laboratorista</th>
-              <th class="p-4">Estatus</th>
-              <th class="p-4 text-right">Acciones</th>
+            <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+              <th class="p-3.5">Orden</th>
+              <th class="p-3.5">Fecha y Periodo</th>
+              <th class="p-3.5">Ubicación</th>
+              <th class="p-3.5">Profesor / Asignatura</th>
+              <th class="p-3.5">Laboratorista</th>
+              <th class="p-3.5">Estatus</th>
+              <th class="p-3.5 text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-200 text-sm">
+          <tbody class="divide-y divide-slate-200 text-xs">
             <template x-for="(item, index) in sortedListBookings" :key="item.id">
               <tr class="hover:bg-slate-50/80 transition">
-                <td class="p-4 whitespace-nowrap text-xs font-bold text-slate-400">
-                  <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs" x-text="'#' + (index + 1)"></span>
+                <td class="p-3.5 whitespace-nowrap font-bold text-slate-400">
+                  <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200" x-text="'#' + (index + 1)"></span>
                   <span class="block text-[10px] font-normal text-slate-400 mt-0.5" x-text="formatCreatedAt(item.createdAt)"></span>
                 </td>
-                <td class="p-4 whitespace-nowrap">
-                  <div class="font-medium text-slate-900" x-text="formatDisplayDate(item.date)"></div>
-                  <div class="text-xs text-slate-500" x-text="'Periodo ' + item.startPeriod + (item.durationPeriods > 1 ? ' al ' + (parseInt(item.startPeriod) + parseInt(item.durationPeriods) - 1) : '')"></div>
+                <td class="p-3.5 whitespace-nowrap">
+                  <div class="font-bold text-slate-900" x-text="formatDisplayDate(item.date)"></div>
+                  <div class="text-slate-500 text-[11px]" x-text="'Periodo ' + item.startPeriod + (item.durationPeriods > 1 ? ' al ' + (parseInt(item.startPeriod) + parseInt(item.durationPeriods) - 1) : '')"></div>
                 </td>
-                <td class="p-4">
-                  <span class="text-xs font-extrabold px-2 py-1 rounded" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
+                <td class="p-3.5">
+                  <span class="text-[10px] font-bold px-2 py-1 rounded uppercase border" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
                 </td>
-                <td class="p-4">
-                  <div class="font-semibold text-slate-800" x-text="item.subject"></div>
-                  <div class="text-xs font-medium flex items-center gap-1.5 mt-0.5">
+                <td class="p-3.5">
+                  <div class="font-bold text-slate-800" x-text="item.subject"></div>
+                  <div class="text-slate-600 flex items-center gap-1.5 mt-0.5 font-medium">
                     <span class="w-2 h-2 rounded-full inline-block shrink-0" :style="'background-color:' + getTeacherColor(item.teacher)"></span>
-                    <span x-text="item.teacher" class="text-slate-600"></span>
+                    <span x-text="item.teacher"></span>
                   </div>
                 </td>
-                <td class="p-4 font-medium text-xs text-slate-700" x-text="item.labTech || 'Opcional (Sin indicar)'"></td>
-                <td class="p-4 whitespace-nowrap">
+                <td class="p-3.5 font-medium text-slate-700" x-text="item.labTech || 'Sin indicar'"></td>
+                <td class="p-3.5 whitespace-nowrap">
                   <template x-if="item.isExtemp">
-                    <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-800 border border-brand-200">
                       <i class="ph ph-warning-circle"></i> Extemporánea
                     </span>
                   </template>
                   <template x-if="!item.isExtemp">
-                    <span class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                       <i class="ph ph-check-circle"></i> A Tiempo
                     </span>
                   </template>
                 </td>
-                <td class="p-4 text-right whitespace-nowrap">
-                  <button @click="viewDetail(item)" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"><i class="ph ph-eye text-lg"></i></button>
-                  <button @click="printSingleBooking(item)" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition"><i class="ph ph-printer text-lg"></i></button>
-                  <button @click="editBooking(item)" class="text-slate-400 hover:text-brand-600 p-1.5 rounded-lg hover:bg-rose-50 transition"><i class="ph ph-pencil-simple text-lg"></i></button>
-                  <button @click="deleteBooking(item.id)" class="text-rose-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition"><i class="ph ph-trash text-lg"></i></button>
+                <td class="p-3.5 text-right whitespace-nowrap">
+                  <button @click="viewDetail(item)" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100 transition"><i class="ph ph-eye text-base"></i></button>
+                  <button @click="printSingleBooking(item)" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100 transition"><i class="ph ph-printer text-base"></i></button>
+                  <button @click="editBooking(item)" class="text-slate-500 hover:text-brand-700 p-1.5 rounded-lg hover:bg-brand-50 transition"><i class="ph ph-pencil-simple text-base"></i></button>
+                  <button @click="deleteBooking(item.id)" class="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition"><i class="ph ph-trash text-base"></i></button>
                 </td>
               </tr>
             </template>
@@ -279,29 +285,29 @@
 
   </main>
 
-  <!-- MODAL FORMULARIO (CORREGIDO PARA SCROLL INTERNO Y CABECERA FJA) -->
+  <!-- MODAL FORMULARIO ESTRUCTURADO Y CORREGIDO PARA SCROLL INTERNO -->
   <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-    <div @click.outside="closeModal()" class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
+    <div @click.outside="closeModal()" class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
       
-      <!-- ENCABEZADO FIJO DE MODAL -->
-      <div class="px-6 py-4 bg-brand-600 text-white flex justify-between items-center shrink-0">
+      <!-- Encabezado Modal Fijo -->
+      <div class="px-6 py-4 bg-brand-600 text-white flex justify-between items-center shrink-0 border-b border-brand-800">
         <div>
-          <h2 class="text-lg font-bold" x-text="editingBookingId ? 'Editar Práctica' : 'Agendar Práctica'"></h2>
-          <p class="text-xs text-rose-100" x-text="editingBookingId ? 'Modifica los datos de la solicitud' : 'Completa los datos de la solicitud'"></p>
+          <h2 class="text-base font-bold uppercase tracking-wide" x-text="editingBookingId ? 'Editar Práctica' : 'Agendar Práctica'"></h2>
+          <p class="text-xs text-rose-100/90 font-medium" x-text="editingBookingId ? 'Modifica los datos de la solicitud' : 'Completa los datos de la solicitud'"></p>
         </div>
-        <button @click="closeModal()" class="text-white/80 hover:text-white p-1 rounded-lg">
+        <button @click="closeModal()" class="text-white/80 hover:text-white p-1 rounded-lg transition">
           <i class="ph ph-x text-xl"></i>
         </button>
       </div>
 
-      <!-- CUERPO CON CON SCROLL CONSERVANDO TODO EN PANTALLA -->
+      <!-- Formulario con Scroll Interno -->
       <form @submit.prevent="submitForm()" x-ref="modalForm" class="p-6 space-y-5 overflow-y-auto flex-1">
 
-        <!-- PRIMER CAMPO: ESPACIO / UBICACIÓN + SALÓN DE CLASES + ASIGNATURA -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+        <!-- BLOQUE 1: ESPACIO, SALÓN Y ASIGNATURA -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
           <div>
-            <label class="block text-xs font-bold text-slate-800 mb-1">Espacio / Ubicación *</label>
-            <select x-model="formData.labType" required class="w-full text-xs font-semibold px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
+            <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">Ubicación *</label>
+            <select x-model="formData.labType" required class="w-full text-xs font-medium px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 bg-white">
               <option value="Laboratorio 26">Laboratorio 26</option>
               <option value="Laboratorio 27">Laboratorio 27</option>
               <option value="Laboratorio 28">Laboratorio 28</option>
@@ -311,15 +317,15 @@
             </select>
           </div>
 
-          <!-- CAMPO DINÁMICO SI SE SELECCIONA SALÓN DE CLASES -->
+          <!-- SALÓN MANUALLY IF SELECTED -->
           <div x-show="formData.labType === 'Salón de clases'" x-transition>
-            <label class="block text-xs font-bold text-brand-700 mb-1">Escriba el Salón *</label>
-            <input type="text" x-model="formData.classroomNumber" :required="formData.labType === 'Salón de clases'" placeholder="Ej. Salón 12, Aula A..." class="w-full text-xs px-3 py-2 border border-brand-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
+            <label class="block text-xs font-bold text-brand-800 uppercase tracking-wider mb-1.5">Número / Nombre Salón *</label>
+            <input type="text" x-model="formData.classroomNumber" :required="formData.labType === 'Salón de clases'" placeholder="Ej. Salón 12, Aula A..." class="w-full text-xs px-3 py-2 border border-brand-300 rounded-lg focus:ring-2 focus:ring-brand-600 bg-white font-medium">
           </div>
 
           <div :class="formData.labType === 'Salón de clases' ? '' : 'sm:col-span-2'">
-            <label class="block text-xs font-bold text-slate-800 mb-1">Asignatura *</label>
-            <select x-model="formData.subject" required class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
+            <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">Asignatura *</label>
+            <select x-model="formData.subject" required class="w-full text-xs font-medium px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 bg-white">
               <option value="Biología">Biología</option>
               <option value="Física">Física</option>
               <option value="Química">Química</option>
@@ -328,27 +334,27 @@
           </div>
         </div>
 
-        <!-- PROFESOR Y LABORATORISTA -->
+        <!-- BLOQUE 2: PROFESOR Y LABORATORISTA -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Profesor *</label>
-            <input type="text" x-model="formData.teacher" required placeholder="Ej. Dr. Roberto Gómez" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Profesor *</label>
+            <input type="text" x-model="formData.teacher" required placeholder="Ej. Dr. Roberto Gómez" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratorista que Atiende <span class="text-slate-400 font-normal">(Opcional)</span></label>
-            <input type="text" x-model="formData.labTech" placeholder="Ej. Lic. Ana Morales" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Laboratorista <span class="text-slate-400 font-normal">(Opcional)</span></label>
+            <input type="text" x-model="formData.labTech" placeholder="Ej. Lic. Ana Morales" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600">
           </div>
         </div>
 
-        <!-- FECHA Y PERIODOS -->
+        <!-- BLOQUE 3: FECHA Y PERIODOS -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha de Práctica *</label>
-            <input type="date" x-model="formData.date" @change="validateRules()" required class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Práctica *</label>
+            <input type="date" x-model="formData.date" @change="validateRules()" required class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Periodo Inicial *</label>
-            <select x-model="formData.startPeriod" @change="validateRules()" required class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Periodo Inicial *</label>
+            <select x-model="formData.startPeriod" @change="validateRules()" required class="w-full text-xs font-medium px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 bg-white">
               <option value="1">Periodo 1</option>
               <option value="2">Periodo 2</option>
               <option value="3">Periodo 3</option>
@@ -360,8 +366,8 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Duración (Periodos) *</label>
-            <select x-model="formData.durationPeriods" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Duración (Periodos) *</label>
+            <select x-model="formData.durationPeriods" class="w-full text-xs font-medium px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 bg-white">
               <option value="1">1 Periodo</option>
               <option value="2">2 Periodos continuos</option>
               <option value="3">3 Periodos continuos</option>
@@ -370,32 +376,32 @@
           </div>
         </div>
 
-        <!-- SECCIÓN DE MATERIAL FRESCO -->
-        <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3">
+        <!-- BLOQUE 4: MATERIAL FRESCO / ESPECIAL -->
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" x-model="formData.needsFreshMaterial" @change="validateRules()" class="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500">
-            <span class="text-xs font-bold text-amber-900">¿Requiere Material Fresco o Insumos Especiales?</span>
+            <input type="checkbox" x-model="formData.needsFreshMaterial" @change="validateRules()" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-600">
+            <span class="text-xs font-bold text-slate-900">¿Requiere Material Fresco o Insumos Especiales?</span>
           </label>
-          <p class="text-[11px] text-amber-800/80 pl-7">
-            Requisito: Mínimo 2 días de anticipación y solicitarse antes del <strong>Miércoles a las 12:00 PM</strong> previo a la semana correspondiente.
+          <p class="text-[11px] text-slate-600 pl-7">
+            Requisito institucional: Mínimo 2 días de anticipación y solicitarse antes del <strong>Miércoles a las 12:00 PM</strong> previo.
           </p>
 
-          <div x-show="formData.needsFreshMaterial" class="pt-2 border-t border-amber-200/80 space-y-3">
+          <div x-show="formData.needsFreshMaterial" class="pt-3 border-t border-slate-200 space-y-3">
             <div class="flex justify-between items-center">
-              <label class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                <i class="ph ph-plant text-amber-600 text-base"></i>
-                <span>Lista Exclusiva de Material Fresco o Especial</span>
+              <label class="text-xs font-bold text-amber-900 flex items-center gap-1.5 uppercase tracking-wider">
+                <i class="ph ph-plant text-amber-700 text-base"></i>
+                <span>Lista Exclusiva de Material Fresco</span>
               </label>
-              <button type="button" @click="addFreshMaterialRow()" class="text-xs font-medium text-amber-800 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-2 py-1 rounded-md transition flex items-center gap-1">
-                <i class="ph ph-plus-bold"></i> Agregar Insumo Fresco
+              <button type="button" @click="addFreshMaterialRow()" class="text-xs font-semibold text-amber-900 hover:bg-amber-100 bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                <i class="ph ph-plus-bold"></i> Agregar Insumo
               </button>
             </div>
 
             <div class="space-y-2">
               <template x-for="(item, index) in formData.freshMaterialsList" :key="index">
                 <div class="flex gap-2 items-center">
-                  <input type="text" x-model="item.name" placeholder="Ej. Hígado de pollo, elodea..." class="flex-1 text-xs px-3 py-1.5 border border-amber-300 rounded-lg bg-white focus:ring-2 focus:ring-amber-500">
-                  <input type="text" x-model="item.quantity" placeholder="Cantidad / Detalle" class="w-40 text-xs px-3 py-1.5 border border-amber-300 rounded-lg bg-white focus:ring-2 focus:ring-amber-500">
+                  <input type="text" x-model="item.name" placeholder="Ej. Hígado de pollo, hojas verdes..." class="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-600">
+                  <input type="text" x-model="item.quantity" placeholder="Cantidad / Detalle" class="w-36 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-600">
                   <button type="button" @click="removeFreshMaterialRow(index)" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg">
                     <i class="ph ph-trash text-base"></i>
                   </button>
@@ -406,20 +412,20 @@
         </div>
 
         <!-- MENSAJE DE VALIDACIÓN -->
-        <div x-show="validationMessage.text" class="p-3 rounded-xl text-xs font-medium flex items-start gap-2 border" :class="validationMessage.isValid ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'">
-          <i class="ph text-base shrink-0" :class="validationMessage.isValid ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-amber-600'"></i>
+        <div x-show="validationMessage.text" class="p-3 rounded-xl text-xs font-medium flex items-start gap-2.5 border" :class="validationMessage.isValid ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'">
+          <i class="ph text-base shrink-0 mt-0.5" :class="validationMessage.isValid ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-amber-600'"></i>
           <span x-html="validationMessage.text"></span>
         </div>
 
-        <!-- ALUMNOS Y MODALIDAD -->
+        <!-- BLOQUE 5: ALUMNOS Y ORGANIZACIÓN -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Cantidad de Alumnos *</label>
-            <input type="number" min="1" max="100" x-model="formData.studentsCount" required placeholder="Ej. 25" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Cantidad de Alumnos *</label>
+            <input type="number" min="1" max="100" x-model="formData.studentsCount" required placeholder="Ej. 25" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Forma / Organización *</label>
-            <select x-model="formData.groupFormat" required class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Organización del Grupo *</label>
+            <select x-model="formData.groupFormat" required class="w-full text-xs font-medium px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 bg-white">
               <option value="Parejas">En Parejas</option>
               <option value="Equipos de 3-4">Equipos de 3-4 alumnos</option>
               <option value="Individual">Individual</option>
@@ -428,27 +434,27 @@
           </div>
         </div>
 
-        <!-- ADJUNTAR ARCHIVO -->
-        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 space-y-2">
-          <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+        <!-- BLOQUE 6: ARCHIVO ADJUNTO -->
+        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50 space-y-2">
+          <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
             <i class="ph ph-file-arrow-up text-brand-600 text-base"></i>
-            <span>Adjuntar Guía / Documento <span class="text-slate-400 font-normal">(Opcional)</span></span>
+            <span>Guía / Documento de Práctica <span class="text-slate-400 font-normal lowercase">(opcional)</span></span>
           </label>
-          <input type="file" @change="handleFileUpload($event)" accept=".pdf,.doc,.docx,.png,.jpg" class="w-full text-xs text-slate-600 file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
-          <p x-show="formData.fileName" class="text-xs text-emerald-700 font-medium flex items-center gap-1">
-            <i class="ph ph-check-bold"></i> Archivo: <span x-text="formData.fileName"></span>
+          <input type="file" @change="handleFileUpload($event)" accept=".pdf,.doc,.docx,.png,.jpg" class="w-full text-xs text-slate-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+          <p x-show="formData.fileName" class="text-xs text-emerald-700 font-semibold flex items-center gap-1 pt-1">
+            <i class="ph ph-check-bold"></i> Archivo seleccionado: <span x-text="formData.fileName"></span>
           </p>
         </div>
 
-        <!-- TABLA 1: REACTIVOS -->
-        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 space-y-2">
+        <!-- BLOQUE 7: REACTIVOS -->
+        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50 space-y-2">
           <div class="flex justify-between items-center">
-            <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
               <i class="ph ph-test-tube text-brand-600 text-base"></i>
               <span>Reactivos y Soluciones</span>
             </label>
-            <button type="button" @click="addReagentRow()" class="text-xs font-medium text-brand-700 hover:text-brand-800 bg-rose-100/80 px-2 py-1 rounded-md transition flex items-center gap-1">
-              <i class="ph ph-plus-bold"></i> Agregar Reactivo
+            <button type="button" @click="addReagentRow()" class="text-xs font-semibold text-slate-700 hover:bg-slate-200 bg-white border border-slate-300 px-2.5 py-1 rounded-md transition flex items-center gap-1">
+              <i class="ph ph-plus-bold"></i> Agregar
             </button>
           </div>
 
@@ -466,15 +472,15 @@
           </div>
         </div>
 
-        <!-- TABLA 2: MATERIAL GENERAL -->
-        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 space-y-2">
+        <!-- BLOQUE 8: MATERIAL GENERAL -->
+        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50 space-y-2">
           <div class="flex justify-between items-center">
-            <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
               <i class="ph ph-list-plus text-brand-600 text-base"></i>
               <span>Material General y Equipo</span>
             </label>
-            <button type="button" @click="addMaterialRow()" class="text-xs font-medium text-brand-700 hover:text-brand-800 bg-rose-100/80 px-2 py-1 rounded-md transition flex items-center gap-1">
-              <i class="ph ph-plus-bold"></i> Agregar Material
+            <button type="button" @click="addMaterialRow()" class="text-xs font-semibold text-slate-700 hover:bg-slate-200 bg-white border border-slate-300 px-2.5 py-1 rounded-md transition flex items-center gap-1">
+              <i class="ph ph-plus-bold"></i> Agregar
             </button>
           </div>
 
@@ -491,10 +497,10 @@
           </div>
         </div>
 
-        <!-- PIE DEL MODAL FIJO / ACCIONES -->
+        <!-- PIE DEL MODAL -->
         <div class="flex justify-end gap-3 pt-3 border-t border-slate-200 sticky bottom-0 bg-white py-2">
           <button type="button" @click="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-          <button type="submit" :disabled="isLoading" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento')"></button>
+          <button type="submit" :disabled="isLoading" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-xs" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento')"></button>
         </div>
 
       </form>
@@ -503,13 +509,13 @@
 
   <!-- MODAL REPORTE GENERAL -->
   <div x-show="isPrintModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
-      <h3 class="text-base font-bold text-slate-900">Generar Reporte PDF</h3>
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+      <h3 class="text-base font-bold text-slate-900 uppercase tracking-wide">Generar Reporte PDF</h3>
       <p class="text-xs text-slate-500">Selecciona el tipo de reporte e intervalo:</p>
       
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Reporte:</label>
-        <select x-model="reportType" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg mb-3">
+        <select x-model="reportType" class="w-full text-xs font-medium px-3 py-2 border border-slate-300 rounded-lg mb-3">
           <option value="Diario">Reporte Diario</option>
           <option value="Semanal">Reporte Semanal</option>
           <option value="Mensual">Reporte Mensual</option>
@@ -521,18 +527,18 @@
 
       <div class="flex justify-end gap-2 pt-2">
         <button @click="isPrintModalOpen = false" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
-        <button @click="triggerPrintReport()" class="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm">Generar PDF</button>
+        <button @click="triggerPrintReport()" class="px-4 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-xs">Generar PDF</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL REPORTE MATERIAL FRESCO -->
   <div x-show="isFreshMaterialModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
-      <h3 class="text-base font-bold text-amber-800 flex items-center gap-2">
-        <i class="ph ph-plant"></i> Reporte de Material Fresco
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+      <h3 class="text-base font-bold text-amber-900 flex items-center gap-2 uppercase tracking-wide">
+        <i class="ph ph-plant text-amber-600"></i> Reporte Material Fresco
       </h3>
-      <p class="text-xs text-slate-500">Genera la lista consolidada de insumos frescos:</p>
+      <p class="text-xs text-slate-500">Genera la lista consolidada de insumos frescos para la semana:</p>
       
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Semana del reporte:</label>
@@ -541,7 +547,7 @@
 
       <div class="flex justify-end gap-2 pt-2">
         <button @click="isFreshMaterialModalOpen = false" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
-        <button @click="triggerFreshMaterialPrint()" class="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-sm">Generar Lista Insumos</button>
+        <button @click="triggerFreshMaterialPrint()" class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs">Generar Lista Insumos</button>
       </div>
     </div>
   </div>
@@ -550,11 +556,11 @@
   <div class="hidden print-only p-8 text-slate-900">
     <div class="border-b-2 border-brand-600 pb-4 mb-6 flex justify-between items-end">
       <div>
-        <h1 class="text-2xl font-bold uppercase text-brand-700 tracking-wide" x-text="printHeaderTitle"></h1>
+        <h1 class="text-2xl font-extrabold uppercase text-brand-700 tracking-wide" x-text="printHeaderTitle"></h1>
         <p class="text-sm font-medium text-slate-600" x-text="printHeaderSubtitle"></p>
       </div>
       <div class="text-right">
-        <div class="text-sm font-bold" x-text="printHeaderDate"></div>
+        <div class="text-sm font-bold text-slate-800" x-text="printHeaderDate"></div>
         <div class="text-xs text-slate-500" x-text="'Impreso el: ' + new Date().toLocaleDateString('es-ES')"></div>
       </div>
     </div>
@@ -567,7 +573,7 @@
               <div>
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-extrabold uppercase px-2 py-0.5 rounded border" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
-                  <span x-show="item.isExtemp" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-600 text-white uppercase">Práctica Extemporánea</span>
+                  <span x-show="item.isExtemp" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-600 text-white uppercase">Práctica Extemporánea</span>
                 </div>
                 <h2 class="text-base font-bold text-slate-900 mt-1" x-text="item.subject"></h2>
                 <p class="text-xs text-slate-700" x-text="'Profesor: ' + item.teacher + (item.labTech ? ' | Laboratorista: ' + item.labTech : '')"></p>
@@ -578,9 +584,9 @@
               </div>
             </div>
 
-            <div x-show="item.freshMaterialsList && item.freshMaterialsList.length > 0" class="p-2 bg-amber-50/80 border border-amber-200 rounded-md mb-2">
-              <h4 class="text-xs font-bold uppercase text-amber-800 mb-1">Insumos Frescos o Especiales:</h4>
-              <ul class="list-disc pl-4 text-xs text-amber-900">
+            <div x-show="item.freshMaterialsList && item.freshMaterialsList.length > 0" class="p-2.5 bg-amber-50/80 border border-amber-200 rounded-md mb-2">
+              <h4 class="text-xs font-bold uppercase text-amber-900 mb-1">Insumos Frescos o Especiales:</h4>
+              <ul class="list-disc pl-4 text-xs text-amber-900 font-medium">
                 <template x-for="fmat in item.freshMaterialsList" :key="fmat.name">
                   <li x-text="fmat.name + (fmat.quantity ? ' - ' + fmat.quantity : '')"></li>
                 </template>
@@ -590,7 +596,7 @@
             <div x-show="item.reagentsList && item.reagentsList.length > 0">
               <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Reactivos y Soluciones:</h4>
               <table class="w-full text-xs border border-slate-300 mb-3">
-                <thead class="bg-slate-100 border-b border-slate-300">
+                <thead class="bg-slate-100 border-b border-slate-300 font-bold">
                   <tr>
                     <th class="p-1.5 text-left border-r border-slate-300">Reactivo / Solución</th>
                     <th class="p-1.5 text-left border-r border-slate-300 w-28">Concentración</th>
@@ -600,9 +606,9 @@
                 <tbody class="divide-y divide-slate-200">
                   <template x-for="reag in item.reagentsList" :key="reag.name">
                     <tr>
-                      <td class="p-1.5 border-r border-slate-200" x-text="reag.name"></td>
-                      <td class="p-1.5 border-r border-slate-200 font-medium" x-text="reag.concentration"></td>
-                      <td class="p-1.5 font-medium" x-text="reag.volume"></td>
+                      <td class="p-1.5 border-r border-slate-200 font-medium" x-text="reag.name"></td>
+                      <td class="p-1.5 border-r border-slate-200" x-text="reag.concentration"></td>
+                      <td class="p-1.5" x-text="reag.volume"></td>
                     </tr>
                   </template>
                 </tbody>
@@ -612,7 +618,7 @@
             <div>
               <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">Materiales y Equipo:</h4>
               <table class="w-full text-xs border border-slate-300">
-                <thead class="bg-slate-100 border-b border-slate-300">
+                <thead class="bg-slate-100 border-b border-slate-300 font-bold">
                   <tr>
                     <th class="p-1.5 text-left border-r border-slate-300">Material / Equipo</th>
                     <th class="p-1.5 text-left w-36">Cantidad</th>
@@ -621,8 +627,8 @@
                 <tbody class="divide-y divide-slate-200">
                   <template x-for="mat in item.materialsList" :key="mat.name">
                     <tr>
-                      <td class="p-1.5 border-r border-slate-200" x-text="mat.name"></td>
-                      <td class="p-1.5 font-medium" x-text="mat.quantity"></td>
+                      <td class="p-1.5 border-r border-slate-200 font-medium" x-text="mat.name"></td>
+                      <td class="p-1.5" x-text="mat.quantity"></td>
                     </tr>
                   </template>
                 </tbody>
@@ -661,7 +667,7 @@
                     </template>
                   </ul>
                 </td>
-                <td class="p-2 font-bold" :class="item.isExtemp ? 'text-rose-700' : 'text-emerald-700'" x-text="item.isExtemp ? 'Solicitud Extemporánea' : 'Solicitado a tiempo'"></td>
+                <td class="p-2 font-bold" :class="item.isExtemp ? 'text-brand-700' : 'text-emerald-700'" x-text="item.isExtemp ? 'Solicitud Extemporánea' : 'Solicitado a tiempo'"></td>
               </tr>
             </template>
           </tbody>
@@ -672,52 +678,52 @@
 
   <!-- MODAL DETALLE -->
   <div x-show="selectedBooking !== null" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
       <template x-if="selectedBooking">
         <div>
-          <div class="p-6 bg-slate-50 border-b border-slate-200 flex justify-between items-start">
+          <div class="p-5 bg-slate-50 border-b border-slate-200 flex justify-between items-start">
             <div>
               <div class="flex items-center gap-2 mb-1">
-                <span class="inline-block px-2.5 py-0.5 rounded text-xs font-extrabold uppercase" :class="getLabBadgeStyle(selectedBooking.labType)" x-text="getDisplaySpace(selectedBooking)"></span>
-                <span x-show="selectedBooking.isExtemp" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-600 text-white uppercase">Extemporánea</span>
+                <span class="inline-block px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase border" :class="getLabBadgeStyle(selectedBooking.labType)" x-text="getDisplaySpace(selectedBooking)"></span>
+                <span x-show="selectedBooking.isExtemp" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-brand-600 text-white uppercase">Extemporánea</span>
               </div>
-              <h3 class="text-lg font-bold text-slate-900" x-text="selectedBooking.subject"></h3>
-              <div class="text-xs font-medium flex items-center gap-1.5 mt-1">
+              <h3 class="text-base font-bold text-slate-900" x-text="selectedBooking.subject"></h3>
+              <div class="text-xs font-medium flex items-center gap-1.5 mt-1 text-slate-700">
                 <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" :style="'background-color:' + getTeacherColor(selectedBooking.teacher)"></span>
-                <span x-text="'Profesor: ' + selectedBooking.teacher" class="text-slate-700"></span>
+                <span x-text="'Profesor: ' + selectedBooking.teacher"></span>
               </div>
-              <div class="text-xs text-slate-500 mt-0.5" x-text="'Atiende: ' + (selectedBooking.labTech || 'Opcional (Sin especificar)')"></div>
+              <div class="text-xs text-slate-500 mt-0.5" x-text="'Atiende: ' + (selectedBooking.labTech || 'Sin especificar')"></div>
             </div>
-            <button @click="selectedBooking = null" class="text-slate-400 hover:text-slate-600">
+            <button @click="selectedBooking = null" class="text-slate-400 hover:text-slate-600 p-1">
               <i class="ph ph-x text-xl"></i>
             </button>
           </div>
 
-          <div class="p-6 space-y-4 text-xs text-slate-700">
-            <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-lg">
+          <div class="p-5 space-y-4 text-xs text-slate-700">
+            <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
               <div>
-                <span class="text-slate-400 block font-medium">Fecha:</span>
-                <span class="font-semibold text-slate-800" x-text="formatDisplayDate(selectedBooking.date)"></span>
+                <span class="text-slate-400 block text-[10px] font-bold uppercase">Fecha:</span>
+                <span class="font-bold text-slate-900" x-text="formatDisplayDate(selectedBooking.date)"></span>
               </div>
               <div>
-                <span class="text-slate-400 block font-medium">Horario:</span>
-                <span class="font-semibold text-slate-800" x-text="'Periodo ' + selectedBooking.startPeriod + (selectedBooking.durationPeriods > 1 ? ' - ' + (parseInt(selectedBooking.startPeriod) + parseInt(selectedBooking.durationPeriods) - 1) : '')"></span>
+                <span class="text-slate-400 block text-[10px] font-bold uppercase">Horario:</span>
+                <span class="font-bold text-slate-900" x-text="'Periodo ' + selectedBooking.startPeriod + (selectedBooking.durationPeriods > 1 ? ' - ' + (parseInt(selectedBooking.startPeriod) + parseInt(selectedBooking.durationPeriods) - 1) : '')"></span>
               </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 border-b border-slate-100 pb-3">
+            <div class="grid grid-cols-2 gap-3 border-b border-slate-100 pb-3">
               <div>
-                <span class="text-slate-400 block font-medium">Alumnos:</span>
-                <span class="font-medium text-slate-800" x-text="selectedBooking.studentsCount + ' estudiantes'"></span>
+                <span class="text-slate-400 block text-[10px] font-bold uppercase">Alumnos:</span>
+                <span class="font-semibold text-slate-800" x-text="selectedBooking.studentsCount + ' estudiantes'"></span>
               </div>
               <div>
-                <span class="text-slate-400 block font-medium">Modalidad:</span>
-                <span class="font-medium text-slate-800" x-text="selectedBooking.groupFormat"></span>
+                <span class="text-slate-400 block text-[10px] font-bold uppercase">Modalidad:</span>
+                <span class="font-semibold text-slate-800" x-text="selectedBooking.groupFormat"></span>
               </div>
             </div>
 
             <div x-show="selectedBooking.freshMaterialsList && selectedBooking.freshMaterialsList.length > 0">
-              <span class="text-amber-800 font-bold block mb-1">Insumos Frescos o Especiales:</span>
+              <span class="text-amber-900 font-bold block mb-1 uppercase tracking-wider text-[10px]">Insumos Frescos o Especiales:</span>
               <div class="bg-amber-50/80 p-3 rounded-lg border border-amber-200 space-y-1">
                 <template x-for="fmat in selectedBooking.freshMaterialsList" :key="fmat.name">
                   <div class="flex justify-between border-b border-amber-200/60 pb-1 last:border-b-0">
@@ -729,18 +735,18 @@
             </div>
 
             <div x-show="selectedBooking.fileData">
-              <span class="text-slate-400 block font-medium mb-1">Guía Adjunta:</span>
-              <a :href="selectedBooking.fileData" :download="selectedBooking.fileName || 'guia_practica'" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase mb-1">Guía Adjunta:</span>
+              <a :href="selectedBooking.fileData" :download="selectedBooking.fileName || 'guia_practica'" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 bg-brand-50 border border-brand-200 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition">
                 <i class="ph ph-download-simple text-base"></i>
                 <span x-text="selectedBooking.fileName || 'Descargar Guía Adjunta'"></span>
               </a>
             </div>
 
             <div x-show="selectedBooking.reagentsList && selectedBooking.reagentsList.length > 0">
-              <span class="text-slate-400 block font-medium mb-1">Reactivos y Soluciones:</span>
-              <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase mb-1">Reactivos y Soluciones:</span>
+              <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1">
                 <template x-for="reag in selectedBooking.reagentsList" :key="reag.name">
-                  <div class="flex justify-between text-[11px] border-b border-slate-200/60 pb-1 last:border-b-0">
+                  <div class="flex justify-between text-[11px] border-b border-slate-200 pb-1 last:border-b-0">
                     <span class="font-bold text-slate-800" x-text="reag.name"></span>
                     <span class="text-slate-600" x-text="reag.concentration + ' | ' + reag.volume"></span>
                   </div>
@@ -749,10 +755,10 @@
             </div>
 
             <div>
-              <span class="text-slate-400 block font-medium mb-1">Lista de Materiales Generales:</span>
-              <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase mb-1">Materiales Generales:</span>
+              <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1">
                 <template x-for="mat in selectedBooking.materialsList" :key="mat.name">
-                  <div class="flex justify-between border-b border-slate-200/60 pb-1 last:border-b-0">
+                  <div class="flex justify-between border-b border-slate-200 pb-1 last:border-b-0">
                     <span class="font-medium text-slate-800" x-text="mat.name"></span>
                     <span class="text-slate-500" x-text="mat.quantity"></span>
                   </div>
@@ -761,19 +767,19 @@
             </div>
           </div>
 
-          <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+          <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
             <div class="flex gap-2">
               <button @click="printSingleBooking(selectedBooking)" class="px-3 py-1.5 bg-slate-200 text-slate-800 hover:bg-slate-300 text-xs font-semibold rounded-lg transition flex items-center gap-1">
-                <i class="ph ph-printer text-sm"></i> Imprimir Práctica
+                <i class="ph ph-printer text-sm"></i> Imprimir
               </button>
-              <button @click="editBooking(selectedBooking)" class="px-3 py-1.5 bg-rose-100 text-brand-700 hover:bg-rose-200 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+              <button @click="editBooking(selectedBooking)" class="px-3 py-1.5 bg-brand-50 text-brand-700 border border-brand-200 hover:bg-brand-100 text-xs font-semibold rounded-lg transition flex items-center gap-1">
                 <i class="ph ph-pencil-simple text-sm"></i> Editar
               </button>
-              <button @click="deleteBooking(selectedBooking.id)" class="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+              <button @click="deleteBooking(selectedBooking.id)" class="px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 text-xs font-semibold rounded-lg transition flex items-center gap-1">
                 <i class="ph ph-trash text-sm"></i> Eliminar
               </button>
             </div>
-            <button @click="selectedBooking = null" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-300">Cerrar</button>
+            <button @click="selectedBooking = null" class="px-3.5 py-1.5 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-300">Cerrar</button>
           </div>
         </div>
       </template>
@@ -904,7 +910,7 @@
         },
 
         formatCreatedAt(ts) {
-          if (!ts) return 'Fecha N/A';
+          if (!ts) return 'N/A';
           const d = new Date(ts);
           return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
         },
@@ -943,24 +949,24 @@
 
         getLabStyle(labName) {
           switch(labName) {
-            case 'Laboratorio 26': return 'bg-purple-50 border-purple-200 hover:bg-purple-100';
-            case 'Laboratorio 27': return 'bg-sky-50 border-sky-200 hover:bg-sky-100';
-            case 'Laboratorio 28': return 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100';
-            case 'Laboratorio 29': return 'bg-amber-50 border-amber-200 hover:bg-amber-100';
-            case 'Laboratorio 30': return 'bg-rose-50 border-rose-200 hover:bg-rose-100';
-            case 'Salón de clases': return 'bg-slate-100 border-slate-300 hover:bg-slate-200';
-            default: return 'bg-slate-50 border-slate-200';
+            case 'Laboratorio 26': return 'border-l-4 border-l-purple-600';
+            case 'Laboratorio 27': return 'border-l-4 border-l-sky-600';
+            case 'Laboratorio 28': return 'border-l-4 border-l-emerald-600';
+            case 'Laboratorio 29': return 'border-l-4 border-l-amber-600';
+            case 'Laboratorio 30': return 'border-l-4 border-l-rose-600';
+            case 'Salón de clases': return 'border-l-4 border-l-slate-600';
+            default: return 'border-l-4 border-l-slate-400';
           }
         },
 
         getLabBadgeStyle(labName) {
           switch(labName) {
-            case 'Laboratorio 26': return 'bg-purple-100 text-purple-800 border-purple-200';
-            case 'Laboratorio 27': return 'bg-sky-100 text-sky-800 border-sky-200';
-            case 'Laboratorio 28': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-            case 'Laboratorio 29': return 'bg-amber-100 text-amber-800 border-amber-200';
-            case 'Laboratorio 30': return 'bg-rose-100 text-rose-800 border-rose-200';
-            case 'Salón de clases': return 'bg-slate-200 text-slate-800 border-slate-300';
+            case 'Laboratorio 26': return 'bg-purple-50 text-purple-800 border-purple-200';
+            case 'Laboratorio 27': return 'bg-sky-50 text-sky-800 border-sky-200';
+            case 'Laboratorio 28': return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+            case 'Laboratorio 29': return 'bg-amber-50 text-amber-800 border-amber-200';
+            case 'Laboratorio 30': return 'bg-rose-50 text-rose-800 border-rose-200';
+            case 'Salón de clases': return 'bg-slate-100 text-slate-800 border-slate-300';
             default: return 'bg-slate-100 text-slate-800';
           }
         },
@@ -1104,12 +1110,12 @@
           if (isExtemp) {
             this.validationMessage = {
               isValid: true,
-              text: `<strong>Práctica Extemporánea:</strong> La práctica se guardará marcada como extemporánea. (${messages.join(' ')})`
+              text: `<strong>Práctica Extemporánea:</strong> La práctica se registrará marcada como extemporánea. (${messages.join(' ')})`
             };
           } else {
             this.validationMessage = {
               isValid: true,
-              text: '<strong>Solicitud a Tiempo:</strong> Cumple con todos los requisitos de anticipación.'
+              text: '<strong>Solicitud a Tiempo:</strong> Cumple con los requisitos de anticipación.'
             };
           }
         },
@@ -1289,7 +1295,7 @@
           Swal.fire({
             icon: 'success',
             title: this.editingBookingId ? '¡Práctica Actualizada!' : '¡Práctica Agendada!',
-            text: 'Los cambios se guardaron correctamente en la nube.',
+            text: 'Los cambios se guardaron correctamente.',
             confirmColor: '#c8102e'
           });
         },
@@ -1301,11 +1307,11 @@
         async deleteBooking(id) {
           this.selectedBooking = null;
           Swal.fire({
-            title: '¿Eliminar agendamiento?',
+            title: '¿Eliminar registro?',
             text: 'Esta acción no se puede deshacer.',
             icon: 'warning',
             showCancelButton: true,
-            confirmColor: '#dc2626',
+            confirmColor: '#c8102e',
             cancelColor: '#64748b',
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
@@ -1316,7 +1322,7 @@
               Swal.fire({
                 icon: 'success',
                 title: 'Eliminado',
-                text: 'El registro se ha eliminado de la bitácora.',
+                text: 'El registro ha sido eliminado.',
                 confirmColor: '#c8102e'
               });
             }
