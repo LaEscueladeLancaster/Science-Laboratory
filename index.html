@@ -59,12 +59,18 @@
           </div>
           <div>
             <h1 class="font-bold text-lg text-white leading-tight">Bitácora de Laboratorios</h1>
-            <p class="text-xs text-rose-100 font-medium">La Escuela de Lancaster</p>
+            <p class="text-xs text-rose-100 font-medium">Catálogo & Agendamiento de Prácticas</p>
           </div>
         </div>
 
         <!-- Acciones principales -->
         <div class="flex items-center gap-3">
+          <!-- Indicador de estado de sincronización -->
+          <div class="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 text-xs">
+            <span class="w-2 h-2 rounded-full" :class="isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'"></span>
+            <span class="text-white font-medium" x-text="isLoading ? 'Sincronizando...' : 'En nube (Tiempo Real)'"></span>
+          </div>
+
           <button @click="openDailyPrintModal()" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-medium text-sm px-3.5 py-2 rounded-lg transition border border-white/20">
             <i class="ph ph-printer text-lg"></i>
             <span>Imprimir Día / PDF</span>
@@ -131,7 +137,7 @@
         </select>
       </div>
 
-      <!-- Vistas y Exportar -->
+      <!-- Vistas y Recargar -->
       <div class="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
         <div class="flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50">
           <button @click="currentView = 'calendar'" :class="currentView === 'calendar' ? 'bg-white shadow-xs text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 text-xs rounded-md transition flex items-center gap-1.5">
@@ -143,6 +149,11 @@
             <span>Lista</span>
           </button>
         </div>
+
+        <button @click="fetchFromCloud()" class="text-xs font-medium text-slate-600 hover:text-slate-800 border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 rounded-lg transition flex items-center gap-1.5" title="Actualizar datos desde la nube">
+          <i class="ph ph-arrows-clockwise text-sm" :class="isLoading ? 'animate-spin' : ''"></i>
+          <span>Actualizar</span>
+        </button>
 
         <button @click="exportCSV()" class="text-xs font-medium text-slate-600 hover:text-slate-800 border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
           <i class="ph ph-download-simple"></i>
@@ -388,7 +399,7 @@
           </div>
         </div>
 
-        <!-- TABLA 1: REACTIVOS Y SOLUCIONES (CONCENTRACIÓN Y VOLUMEN) -->
+        <!-- TABLA 1: REACTIVOS Y SOLUCIONES -->
         <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3">
           <div class="flex justify-between items-center">
             <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -441,7 +452,7 @@
 
         <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
           <button type="button" @click="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-          <button type="submit" :disabled="!validationMessage.isValid" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm" x-text="editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento'">
+          <button type="submit" :disabled="!validationMessage.isValid || isLoading" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento')">
           </button>
         </div>
 
@@ -626,10 +637,15 @@
   <script>
     function appData() {
       return {
+        // CONFIGURACIÓN DE NUBE (JSONBin.io)
+        binId: '6ada1480ffd5d1605382c335',
+        masterKey: '$2a$10$BE8f0GOmC3mfw73ErHZf2uWgGvlSZY.SyhqRA3vQxdF3fL6Cn5WDq',
+        
         currentView: 'calendar',
         currentWeekOffset: 0,
         isModalOpen: false,
         isPrintModalOpen: false,
+        isLoading: false,
         selectedBooking: null,
         editingBookingId: null,
         selectedLabFilter: 'ALL',
@@ -671,41 +687,65 @@
           text: ''
         },
 
-        initData() {
-          const saved = localStorage.getItem('lab_bookings_data_v4');
-          if (saved) {
-            this.bookings = JSON.parse(saved);
-          } else {
-            const today = new Date().toISOString().split('T')[0];
-            this.bookings = [
-              {
-                id: 1,
-                labType: 'Laboratorio 26',
-                classroomNumber: '',
-                teacher: 'Dra. María Carmen',
-                labTech: 'Lic. Ana Morales',
-                subject: 'Biología',
-                date: today,
-                startPeriod: '2',
-                durationPeriods: '2',
-                needsFreshMaterial: true,
-                studentsCount: 24,
-                groupFormat: 'Parejas',
-                reagentsList: [
-                  { name: 'Solución Salina', concentration: '0.9%', volume: '500 ml' }
-                ],
-                materialsList: [
-                  { name: 'Microscopios Ópticos', quantity: '12 pzas' }
-                ],
-                status: 'Aprobada'
+        async initData() {
+          await this.fetchFromCloud();
+          
+          // Auto-actualizar cada 30 segundos
+          setInterval(() => {
+            this.fetchFromCloud(true);
+          }, 30000);
+        },
+
+        // LEER DATOS DESDE LA NUBE
+        async fetchFromCloud(silent = false) {
+          if (!silent) this.isLoading = true;
+          try {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}/latest`, {
+              method: 'GET',
+              headers: {
+                'X-Master-Key': this.masterKey
               }
-            ];
-            this.saveStorage();
+            });
+            if (res.ok) {
+              const json = await res.json();
+              if (Array.isArray(json.record)) {
+                this.bookings = json.record;
+              } else {
+                this.bookings = [];
+              }
+            }
+          } catch (e) {
+            console.error('Error al sincronizar desde la nube:', e);
+          } finally {
+            this.isLoading = false;
           }
         },
 
-        saveStorage() {
-          localStorage.setItem('lab_bookings_data_v4', JSON.stringify(this.bookings));
+        // GUARDAR DATOS EN LA NUBE
+        async saveToCloud() {
+          this.isLoading = true;
+          try {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': this.masterKey
+              },
+              body: JSON.stringify(this.bookings)
+            });
+            if (!res.ok) {
+              throw new Error('Error al guardar en el servidor');
+            }
+          } catch (e) {
+            console.error(e);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error de conexión',
+              text: 'No se pudieron sincronizar los cambios en la nube.'
+            });
+          } finally {
+            this.isLoading = false;
+          }
         },
 
         getTeacherColor(teacherName) {
@@ -924,7 +964,7 @@
           }, 300);
         },
 
-        submitForm() {
+        async submitForm() {
           if (!this.validationMessage.isValid) return;
 
           const cleanMaterials = this.formData.materialsList.filter(m => m.name.trim() !== '');
@@ -952,13 +992,13 @@
             this.bookings.push(newBooking);
           }
 
-          this.saveStorage();
+          await this.saveToCloud();
           this.closeModal();
 
           Swal.fire({
             icon: 'success',
             title: this.editingBookingId ? '¡Práctica Actualizada!' : '¡Práctica Agendada!',
-            text: 'Los cambios se guardaron correctamente en la bitácora.',
+            text: 'Los cambios se guardaron correctamente en la nube para todos los profesores.',
             confirmColor: '#c8102e'
           });
         },
@@ -967,7 +1007,7 @@
           this.selectedBooking = item;
         },
 
-        deleteBooking(id) {
+        async deleteBooking(id) {
           this.selectedBooking = null;
           Swal.fire({
             title: '¿Eliminar agendamiento?',
@@ -978,10 +1018,10 @@
             cancelColor: '#64748b',
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
-          }).then((result) => {
+          }).then(async (result) => {
             if (result.isConfirmed) {
               this.bookings = this.bookings.filter(b => b.id !== id);
-              this.saveStorage();
+              await this.saveToCloud();
               Swal.fire({
                 icon: 'success',
                 title: 'Eliminado',
