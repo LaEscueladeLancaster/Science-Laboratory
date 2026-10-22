@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bitácora de Laboratorios - </title>
+  <title>Bitácora de Laboratorios - La Escuela de Lancaster</title>
   <!-- CSS de Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts Inter -->
@@ -27,7 +27,7 @@
               50: '#fff1f2',
               100: '#ffe4e6',
               500: '#e11d48',
-              600: '#c8102e', // Rojo institucional
+              600: '#c8102e',
               700: '#9f1239',
               800: '#881337',
               900: '#4c0519',
@@ -48,11 +48,10 @@
 </head>
 <body class="h-full font-sans text-slate-800 antialiased bg-slate-50 flex flex-col min-h-screen" x-data="appData()" x-init="initData()">
 
-  <!-- ENCABEZADO INSTITUCIONAL ROJO -->
+  <!-- ENCABEZADO INSTITUCIONAL -->
   <header class="bg-brand-600 text-white shadow-md sticky top-0 z-30 no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16 items-center">
-        <!-- Logo y Nombre -->
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20">
             <i class="ph ph-flask text-2xl"></i>
@@ -63,9 +62,7 @@
           </div>
         </div>
 
-        <!-- Acciones principales -->
         <div class="flex items-center gap-2 sm:gap-3">
-          <!-- Estado de sincronización -->
           <div class="hidden md:flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 text-xs">
             <span class="w-2 h-2 rounded-full" :class="isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'"></span>
             <span class="text-white font-medium" x-text="isLoading ? 'Sincronizando...' : 'En nube (Tiempo Real)'"></span>
@@ -118,7 +115,6 @@
 
     <!-- CONTROLES Y FILTROS -->
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-      <!-- Selector de Semana -->
       <div class="flex items-center gap-2">
         <button @click="changeWeek(-1)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition">
           <i class="ph ph-caret-left text-lg"></i>
@@ -132,7 +128,6 @@
         </button>
       </div>
 
-      <!-- Filtro por Ubicación -->
       <div class="flex items-center gap-2 w-full lg:w-auto">
         <label class="text-xs font-medium text-slate-500 shrink-0">Espacio:</label>
         <select x-model="selectedLabFilter" class="text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 focus:ring-2 focus:ring-brand-500">
@@ -143,7 +138,6 @@
         </select>
       </div>
 
-      <!-- Vistas y Recargar -->
       <div class="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
         <div class="flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50">
           <button @click="currentView = 'calendar'" :class="currentView === 'calendar' ? 'bg-white shadow-xs text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 text-xs rounded-md transition flex items-center gap-1.5">
@@ -156,7 +150,7 @@
           </button>
         </div>
 
-        <button @click="fetchFromCloud()" class="text-xs font-medium text-slate-600 hover:text-slate-800 border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 rounded-lg transition flex items-center gap-1.5" title="Actualizar datos desde la nube">
+        <button @click="fetchFromCloud()" class="text-xs font-medium text-slate-600 hover:text-slate-800 border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
           <i class="ph ph-arrows-clockwise text-sm" :class="isLoading ? 'animate-spin' : ''"></i>
           <span>Actualizar</span>
         </button>
@@ -191,27 +185,20 @@
                 </td>
 
                 <template x-for="day in weekDays" :key="day.dateStr">
-                  <td class="p-2 border-r border-slate-200 last:border-r-0 align-top h-28 hover:bg-slate-50/50 transition relative"
-                      :class="day.isToday ? 'bg-rose-50/20' : ''">
-                    
+                  <td class="p-2 border-r border-slate-200 last:border-r-0 align-top h-28 hover:bg-slate-50/50 transition relative" :class="day.isToday ? 'bg-rose-50/20' : ''">
                     <div class="space-y-1.5">
                       <template x-for="item in getBookingsForSlot(day.dateStr, period)" :key="item.id">
-                        <div @click="viewDetail(item)"
-                             class="p-2 rounded-lg border text-left cursor-pointer transition shadow-2xs group hover:scale-[1.02]"
-                             :class="getLabStyle(item.labType)">
-                          
-                          <!-- Distintivo de Espacio y Extemporáneo -->
+                        <div @click="viewDetail(item)" class="p-2 rounded-lg border text-left cursor-pointer transition shadow-2xs group hover:scale-[1.02]" :class="getLabStyle(item.labType)">
                           <div class="flex items-center justify-between mb-1 gap-1 flex-wrap">
                             <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
                             <div class="flex items-center gap-1">
-                              <span x-show="item.isExtemp" class="text-[8px] font-bold px-1 py-0.2 rounded bg-rose-600 text-white uppercase" title="Práctica Extemporánea">Extemporánea</span>
+                              <span x-show="item.isExtemp" class="text-[8px] font-bold px-1 py-0.2 rounded bg-rose-600 text-white uppercase">Extemporánea</span>
                               <span x-show="item.needsFreshMaterial" title="Requiere Material Fresco" class="text-amber-700"><i class="ph ph-plant-bold text-xs"></i></span>
                             </div>
                           </div>
 
                           <div class="font-bold truncate text-[11px] text-slate-900" x-text="item.subject"></div>
                           
-                          <!-- Profesor con Color Asignado -->
                           <div class="text-[10px] font-medium truncate mt-0.5 flex items-center gap-1">
                             <span class="w-2 h-2 rounded-full inline-block shrink-0" :style="'background-color:' + getTeacherColor(item.teacher)"></span>
                             <span x-text="item.teacher" class="text-slate-700"></span>
@@ -219,7 +206,6 @@
                         </div>
                       </template>
                     </div>
-
                   </td>
                 </template>
               </tr>
@@ -235,7 +221,7 @@
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              <th class="p-4">Orden de Solicitud</th>
+              <th class="p-4">Orden</th>
               <th class="p-4">Fecha y Periodo</th>
               <th class="p-4">Ubicación</th>
               <th class="p-4">Profesor / Asignatura</th>
@@ -279,18 +265,10 @@
                   </template>
                 </td>
                 <td class="p-4 text-right whitespace-nowrap">
-                  <button @click="viewDetail(item)" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition" title="Ver Detalle">
-                    <i class="ph ph-eye text-lg"></i>
-                  </button>
-                  <button @click="printSingleBooking(item)" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition" title="Imprimir Práctica">
-                    <i class="ph ph-printer text-lg"></i>
-                  </button>
-                  <button @click="editBooking(item)" class="text-slate-400 hover:text-brand-600 p-1.5 rounded-lg hover:bg-rose-50 transition" title="Editar">
-                    <i class="ph ph-pencil-simple text-lg"></i>
-                  </button>
-                  <button @click="deleteBooking(item.id)" class="text-rose-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition" title="Eliminar">
-                    <i class="ph ph-trash text-lg"></i>
-                  </button>
+                  <button @click="viewDetail(item)" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"><i class="ph ph-eye text-lg"></i></button>
+                  <button @click="printSingleBooking(item)" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition"><i class="ph ph-printer text-lg"></i></button>
+                  <button @click="editBooking(item)" class="text-slate-400 hover:text-brand-600 p-1.5 rounded-lg hover:bg-rose-50 transition"><i class="ph ph-pencil-simple text-lg"></i></button>
+                  <button @click="deleteBooking(item.id)" class="text-rose-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition"><i class="ph ph-trash text-lg"></i></button>
                 </td>
               </tr>
             </template>
@@ -301,11 +279,12 @@
 
   </main>
 
-  <!-- MODAL FORMULARIO (AGENDAR / EDITAR) -->
+  <!-- MODAL FORMULARIO (CORREGIDO PARA SCROLL INTERNO Y CABECERA FJA) -->
   <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-    <div @click.outside="closeModal()" class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden">
+    <div @click.outside="closeModal()" class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
       
-      <div class="px-6 py-4 bg-brand-600 text-white flex justify-between items-center">
+      <!-- ENCABEZADO FIJO DE MODAL -->
+      <div class="px-6 py-4 bg-brand-600 text-white flex justify-between items-center shrink-0">
         <div>
           <h2 class="text-lg font-bold" x-text="editingBookingId ? 'Editar Práctica' : 'Agendar Práctica'"></h2>
           <p class="text-xs text-rose-100" x-text="editingBookingId ? 'Modifica los datos de la solicitud' : 'Completa los datos de la solicitud'"></p>
@@ -315,13 +294,14 @@
         </button>
       </div>
 
-      <form @submit.prevent="submitForm()" class="p-6 space-y-5">
+      <!-- CUERPO CON CON SCROLL CONSERVANDO TODO EN PANTALLA -->
+      <form @submit.prevent="submitForm()" x-ref="modalForm" class="p-6 space-y-5 overflow-y-auto flex-1">
 
-        <!-- Espacio y Asignatura -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- PRIMER CAMPO: ESPACIO / UBICACIÓN + SALÓN DE CLASES + ASIGNATURA -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Espacio / Ubicación *</label>
-            <select x-model="formData.labType" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <label class="block text-xs font-bold text-slate-800 mb-1">Espacio / Ubicación *</label>
+            <select x-model="formData.labType" required class="w-full text-xs font-semibold px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
               <option value="Laboratorio 26">Laboratorio 26</option>
               <option value="Laboratorio 27">Laboratorio 27</option>
               <option value="Laboratorio 28">Laboratorio 28</option>
@@ -331,15 +311,15 @@
             </select>
           </div>
 
-          <!-- Número de Salón si aplica -->
-          <div x-show="formData.labType === 'Salón de clases'">
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Número de Salón *</label>
-            <input type="text" x-model="formData.classroomNumber" :required="formData.labType === 'Salón de clases'" placeholder="Ej. Salón 12" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          <!-- CAMPO DINÁMICO SI SE SELECCIONA SALÓN DE CLASES -->
+          <div x-show="formData.labType === 'Salón de clases'" x-transition>
+            <label class="block text-xs font-bold text-brand-700 mb-1">Escriba el Salón *</label>
+            <input type="text" x-model="formData.classroomNumber" :required="formData.labType === 'Salón de clases'" placeholder="Ej. Salón 12, Aula A..." class="w-full text-xs px-3 py-2 border border-brand-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Asignatura *</label>
-            <select x-model="formData.subject" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          <div :class="formData.labType === 'Salón de clases' ? '' : 'sm:col-span-2'">
+            <label class="block text-xs font-bold text-slate-800 mb-1">Asignatura *</label>
+            <select x-model="formData.subject" required class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
               <option value="Biología">Biología</option>
               <option value="Física">Física</option>
               <option value="Química">Química</option>
@@ -348,27 +328,27 @@
           </div>
         </div>
 
-        <!-- Profesor y Laboratorista -->
+        <!-- PROFESOR Y LABORATORISTA -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Profesor *</label>
-            <input type="text" x-model="formData.teacher" required placeholder="Ej. Dr. Roberto Gómez" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <input type="text" x-model="formData.teacher" required placeholder="Ej. Dr. Roberto Gómez" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratorista que Atiende <span class="text-slate-400 font-normal">(Opcional)</span></label>
-            <input type="text" x-model="formData.labTech" placeholder="Ej. Lic. Ana Morales" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <input type="text" x-model="formData.labTech" placeholder="Ej. Lic. Ana Morales" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
           </div>
         </div>
 
-        <!-- Fecha y Horarios -->
+        <!-- FECHA Y PERIODOS -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha de Práctica *</label>
-            <input type="date" x-model="formData.date" @change="validateRules()" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <input type="date" x-model="formData.date" @change="validateRules()" required class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Periodo Inicial *</label>
-            <select x-model="formData.startPeriod" @change="validateRules()" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <select x-model="formData.startPeriod" @change="validateRules()" required class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
               <option value="1">Periodo 1</option>
               <option value="2">Periodo 2</option>
               <option value="3">Periodo 3</option>
@@ -381,7 +361,7 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Duración (Periodos) *</label>
-            <select x-model="formData.durationPeriods" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <select x-model="formData.durationPeriods" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
               <option value="1">1 Periodo</option>
               <option value="2">2 Periodos continuos</option>
               <option value="3">3 Periodos continuos</option>
@@ -390,33 +370,56 @@
           </div>
         </div>
 
-        <!-- Material Fresco -->
-        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+        <!-- SECCIÓN DE MATERIAL FRESCO -->
+        <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3">
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" x-model="formData.needsFreshMaterial" @change="validateRules()" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
-            <span class="text-sm font-semibold text-slate-800">¿Requiere Material Fresco o Insumos Especiales?</span>
+            <input type="checkbox" x-model="formData.needsFreshMaterial" @change="validateRules()" class="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500">
+            <span class="text-xs font-bold text-amber-900">¿Requiere Material Fresco o Insumos Especiales?</span>
           </label>
-          <p class="text-xs text-slate-500 pl-7">
-            Requisito: Mínimo 2 días de anticipación y antes del <strong>Miércoles a las 12:00 PM</strong> previo a la semana correspondiente.
+          <p class="text-[11px] text-amber-800/80 pl-7">
+            Requisito: Mínimo 2 días de anticipación y solicitarse antes del <strong>Miércoles a las 12:00 PM</strong> previo a la semana correspondiente.
           </p>
+
+          <div x-show="formData.needsFreshMaterial" class="pt-2 border-t border-amber-200/80 space-y-3">
+            <div class="flex justify-between items-center">
+              <label class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                <i class="ph ph-plant text-amber-600 text-base"></i>
+                <span>Lista Exclusiva de Material Fresco o Especial</span>
+              </label>
+              <button type="button" @click="addFreshMaterialRow()" class="text-xs font-medium text-amber-800 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-2 py-1 rounded-md transition flex items-center gap-1">
+                <i class="ph ph-plus-bold"></i> Agregar Insumo Fresco
+              </button>
+            </div>
+
+            <div class="space-y-2">
+              <template x-for="(item, index) in formData.freshMaterialsList" :key="index">
+                <div class="flex gap-2 items-center">
+                  <input type="text" x-model="item.name" placeholder="Ej. Hígado de pollo, elodea..." class="flex-1 text-xs px-3 py-1.5 border border-amber-300 rounded-lg bg-white focus:ring-2 focus:ring-amber-500">
+                  <input type="text" x-model="item.quantity" placeholder="Cantidad / Detalle" class="w-40 text-xs px-3 py-1.5 border border-amber-300 rounded-lg bg-white focus:ring-2 focus:ring-amber-500">
+                  <button type="button" @click="removeFreshMaterialRow(index)" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg">
+                    <i class="ph ph-trash text-base"></i>
+                  </button>
+                </div>
+              </template>
+            </div>
+          </div>
         </div>
 
-        <!-- Mensaje Informativo / Extemporáneo -->
-        <div x-show="validationMessage.text" class="p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 border"
-             :class="validationMessage.isValid ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'">
-          <i class="ph text-lg shrink-0" :class="validationMessage.isValid ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-amber-600'"></i>
+        <!-- MENSAJE DE VALIDACIÓN -->
+        <div x-show="validationMessage.text" class="p-3 rounded-xl text-xs font-medium flex items-start gap-2 border" :class="validationMessage.isValid ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'">
+          <i class="ph text-base shrink-0" :class="validationMessage.isValid ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-amber-600'"></i>
           <span x-html="validationMessage.text"></span>
         </div>
 
-        <!-- Alumnos y Modalidad -->
+        <!-- ALUMNOS Y MODALIDAD -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Cantidad de Alumnos *</label>
-            <input type="number" min="1" max="100" x-model="formData.studentsCount" required placeholder="Ej. 25" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <input type="number" min="1" max="100" x-model="formData.studentsCount" required placeholder="Ej. 25" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Forma / Organización *</label>
-            <select x-model="formData.groupFormat" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+            <select x-model="formData.groupFormat" required class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
               <option value="Parejas">En Parejas</option>
               <option value="Equipos de 3-4">Equipos de 3-4 alumnos</option>
               <option value="Individual">Individual</option>
@@ -425,26 +428,26 @@
           </div>
         </div>
 
-        <!-- ADJUNTAR DOCUMENTO (OPCIONAL) -->
-        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-2">
+        <!-- ADJUNTAR ARCHIVO -->
+        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 space-y-2">
           <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
             <i class="ph ph-file-arrow-up text-brand-600 text-base"></i>
-            <span>Adjuntar Guía / Documento de Práctica <span class="text-slate-400 font-normal">(Opcional)</span></span>
+            <span>Adjuntar Guía / Documento <span class="text-slate-400 font-normal">(Opcional)</span></span>
           </label>
-          <input type="file" @change="handleFileUpload($event)" accept=".pdf,.doc,.docx,.png,.jpg" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+          <input type="file" @change="handleFileUpload($event)" accept=".pdf,.doc,.docx,.png,.jpg" class="w-full text-xs text-slate-600 file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
           <p x-show="formData.fileName" class="text-xs text-emerald-700 font-medium flex items-center gap-1">
-            <i class="ph ph-check-bold"></i> Archivo listo: <span x-text="formData.fileName"></span>
+            <i class="ph ph-check-bold"></i> Archivo: <span x-text="formData.fileName"></span>
           </p>
         </div>
 
-        <!-- TABLA 1: REACTIVOS Y SOLUCIONES -->
-        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3">
+        <!-- TABLA 1: REACTIVOS -->
+        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 space-y-2">
           <div class="flex justify-between items-center">
             <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <i class="ph ph-test-tube text-brand-600 text-base"></i>
-              <span>Reactivos y Soluciones (Concentración y Volumen)</span>
+              <span>Reactivos y Soluciones</span>
             </label>
-            <button type="button" @click="addReagentRow()" class="text-xs font-medium text-brand-700 hover:text-brand-800 bg-rose-100/80 hover:bg-rose-100 px-2.5 py-1 rounded-md transition flex items-center gap-1">
+            <button type="button" @click="addReagentRow()" class="text-xs font-medium text-brand-700 hover:text-brand-800 bg-rose-100/80 px-2 py-1 rounded-md transition flex items-center gap-1">
               <i class="ph ph-plus-bold"></i> Agregar Reactivo
             </button>
           </div>
@@ -452,10 +455,10 @@
           <div class="space-y-2">
             <template x-for="(item, index) in formData.reagentsList" :key="index">
               <div class="flex gap-2 items-center">
-                <input type="text" x-model="item.name" placeholder="Reactivo / Solución" class="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
-                <input type="text" x-model="item.concentration" placeholder="Concentración (ej. 0.1 M)" class="w-32 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
-                <input type="text" x-model="item.volume" placeholder="Volumen (ej. 250 ml)" class="w-32 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
-                <button type="button" @click="removeReagentRow(index)" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition">
+                <input type="text" x-model="item.name" placeholder="Reactivo / Solución" class="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white">
+                <input type="text" x-model="item.concentration" placeholder="Concentración" class="w-28 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white">
+                <input type="text" x-model="item.volume" placeholder="Volumen" class="w-28 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white">
+                <button type="button" @click="removeReagentRow(index)" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg">
                   <i class="ph ph-trash text-base"></i>
                 </button>
               </div>
@@ -463,14 +466,14 @@
           </div>
         </div>
 
-        <!-- TABLA 2: MATERIAL GENERAL Y EQUIPO -->
-        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3">
+        <!-- TABLA 2: MATERIAL GENERAL -->
+        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 space-y-2">
           <div class="flex justify-between items-center">
             <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <i class="ph ph-list-plus text-brand-600 text-base"></i>
               <span>Material General y Equipo</span>
             </label>
-            <button type="button" @click="addMaterialRow()" class="text-xs font-medium text-brand-700 hover:text-brand-800 bg-rose-100/80 hover:bg-rose-100 px-2.5 py-1 rounded-md transition flex items-center gap-1">
+            <button type="button" @click="addMaterialRow()" class="text-xs font-medium text-brand-700 hover:text-brand-800 bg-rose-100/80 px-2 py-1 rounded-md transition flex items-center gap-1">
               <i class="ph ph-plus-bold"></i> Agregar Material
             </button>
           </div>
@@ -478,9 +481,9 @@
           <div class="space-y-2">
             <template x-for="(item, index) in formData.materialsList" :key="index">
               <div class="flex gap-2 items-center">
-                <input type="text" x-model="item.name" placeholder="Material o Equipo" class="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
-                <input type="text" x-model="item.quantity" placeholder="Cantidad" class="w-36 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500">
-                <button type="button" @click="removeMaterialRow(index)" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition">
+                <input type="text" x-model="item.name" placeholder="Material o Equipo" class="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white">
+                <input type="text" x-model="item.quantity" placeholder="Cantidad" class="w-32 text-xs px-3 py-1.5 border border-slate-300 rounded-lg bg-white">
+                <button type="button" @click="removeMaterialRow(index)" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg">
                   <i class="ph ph-trash text-base"></i>
                 </button>
               </div>
@@ -488,52 +491,52 @@
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
+        <!-- PIE DEL MODAL FIJO / ACCIONES -->
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-200 sticky bottom-0 bg-white py-2">
           <button type="button" @click="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-          <button type="submit" :disabled="isLoading" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento')">
-          </button>
+          <button type="submit" :disabled="isLoading" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-sm" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento')"></button>
         </div>
 
       </form>
     </div>
   </div>
 
-  <!-- MODAL DE IMPRESIÓN REPORTES GENERALES -->
+  <!-- MODAL REPORTE GENERAL -->
   <div x-show="isPrintModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
       <h3 class="text-base font-bold text-slate-900">Generar Reporte PDF</h3>
-      <p class="text-xs text-slate-500">Selecciona el tipo de reporte e intervalo que deseas imprimir:</p>
+      <p class="text-xs text-slate-500">Selecciona el tipo de reporte e intervalo:</p>
       
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Reporte:</label>
-        <select x-model="reportType" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 mb-3">
+        <select x-model="reportType" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg mb-3">
           <option value="Diario">Reporte Diario</option>
           <option value="Semanal">Reporte Semanal</option>
           <option value="Mensual">Reporte Mensual</option>
         </select>
 
         <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha Base:</label>
-        <input type="date" x-model="printDate" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+        <input type="date" x-model="printDate" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg">
       </div>
 
       <div class="flex justify-end gap-2 pt-2">
         <button @click="isPrintModalOpen = false" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
-        <button @click="triggerPrintReport()" class="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm">Generar PDF / Imprimir</button>
+        <button @click="triggerPrintReport()" class="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm">Generar PDF</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL DE MATERIAL FRESCO EN PDF -->
+  <!-- MODAL REPORTE MATERIAL FRESCO -->
   <div x-show="isFreshMaterialModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
       <h3 class="text-base font-bold text-amber-800 flex items-center gap-2">
         <i class="ph ph-plant"></i> Reporte de Material Fresco
       </h3>
-      <p class="text-xs text-slate-500">Genera la lista consolidada de insumos frescos requeridos para la semana:</p>
+      <p class="text-xs text-slate-500">Genera la lista consolidada de insumos frescos:</p>
       
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Semana del reporte:</label>
-        <input type="date" x-model="freshMaterialPrintDate" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+        <input type="date" x-model="freshMaterialPrintDate" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg">
       </div>
 
       <div class="flex justify-end gap-2 pt-2">
@@ -543,9 +546,8 @@
     </div>
   </div>
 
-  <!-- REPORTE DE IMPRESIÓN (PDF GENERAL / INDIVIDUAL / FRESCO) -->
+  <!-- IMPRESIÓN (PDF) -->
   <div class="hidden print-only p-8 text-slate-900">
-    <!-- Encabezado genérico flexible -->
     <div class="border-b-2 border-brand-600 pb-4 mb-6 flex justify-between items-end">
       <div>
         <h1 class="text-2xl font-bold uppercase text-brand-700 tracking-wide" x-text="printHeaderTitle"></h1>
@@ -557,7 +559,6 @@
       </div>
     </div>
 
-    <!-- MODO 1: PRACTICAS REGULARES / REPORTES -->
     <template x-if="printMode === 'standard'">
       <div>
         <template x-for="item in activePrintBookings" :key="item.id">
@@ -575,6 +576,15 @@
                 <span class="text-xs font-bold bg-slate-100 px-2.5 py-1 rounded border border-slate-300" x-text="formatDisplayDate(item.date) + ' - Periodo ' + item.startPeriod"></span>
                 <p class="text-xs text-slate-600 mt-1" x-text="item.studentsCount + ' alumnos (' + item.groupFormat + ')'"></p>
               </div>
+            </div>
+
+            <div x-show="item.freshMaterialsList && item.freshMaterialsList.length > 0" class="p-2 bg-amber-50/80 border border-amber-200 rounded-md mb-2">
+              <h4 class="text-xs font-bold uppercase text-amber-800 mb-1">Insumos Frescos o Especiales:</h4>
+              <ul class="list-disc pl-4 text-xs text-amber-900">
+                <template x-for="fmat in item.freshMaterialsList" :key="fmat.name">
+                  <li x-text="fmat.name + (fmat.quantity ? ' - ' + fmat.quantity : '')"></li>
+                </template>
+              </ul>
             </div>
 
             <div x-show="item.reagentsList && item.reagentsList.length > 0">
@@ -623,7 +633,6 @@
       </div>
     </template>
 
-    <!-- MODO 2: REPORTE DE MATERIAL FRESCO CONSOLIDADO -->
     <template x-if="printMode === 'freshMaterial'">
       <div>
         <table class="w-full text-xs border border-slate-300">
@@ -632,7 +641,7 @@
               <th class="p-2 text-left border-r border-slate-300">Fecha Práctica</th>
               <th class="p-2 text-left border-r border-slate-300">Ubicación</th>
               <th class="p-2 text-left border-r border-slate-300">Materia / Profesor</th>
-              <th class="p-2 text-left border-r border-slate-300">Material Fresco Requerido</th>
+              <th class="p-2 text-left border-r border-slate-300">Material Fresco / Especial Requerido</th>
               <th class="p-2 text-left">Estatus Solicitud</th>
             </tr>
           </thead>
@@ -647,8 +656,8 @@
                 </td>
                 <td class="p-2 border-r border-slate-200">
                   <ul class="list-disc pl-4 space-y-0.5">
-                    <template x-for="mat in item.materialsList" :key="mat.name">
-                      <li x-text="mat.name + ' (' + mat.quantity + ')'"></li>
+                    <template x-for="mat in (item.freshMaterialsList && item.freshMaterialsList.length > 0 ? item.freshMaterialsList : item.materialsList)" :key="mat.name">
+                      <li x-text="mat.name + (mat.quantity ? ' (' + mat.quantity + ')' : '')"></li>
                     </template>
                   </ul>
                 </td>
@@ -707,7 +716,18 @@
               </div>
             </div>
 
-            <!-- Archivo Adjunto -->
+            <div x-show="selectedBooking.freshMaterialsList && selectedBooking.freshMaterialsList.length > 0">
+              <span class="text-amber-800 font-bold block mb-1">Insumos Frescos o Especiales:</span>
+              <div class="bg-amber-50/80 p-3 rounded-lg border border-amber-200 space-y-1">
+                <template x-for="fmat in selectedBooking.freshMaterialsList" :key="fmat.name">
+                  <div class="flex justify-between border-b border-amber-200/60 pb-1 last:border-b-0">
+                    <span class="font-semibold text-amber-900" x-text="fmat.name"></span>
+                    <span class="text-amber-800" x-text="fmat.quantity"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+
             <div x-show="selectedBooking.fileData">
               <span class="text-slate-400 block font-medium mb-1">Guía Adjunta:</span>
               <a :href="selectedBooking.fileData" :download="selectedBooking.fileName || 'guia_practica'" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition">
@@ -729,7 +749,7 @@
             </div>
 
             <div>
-              <span class="text-slate-400 block font-medium mb-1">Lista de Materiales:</span>
+              <span class="text-slate-400 block font-medium mb-1">Lista de Materiales Generales:</span>
               <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1">
                 <template x-for="mat in selectedBooking.materialsList" :key="mat.name">
                   <div class="flex justify-between border-b border-slate-200/60 pb-1 last:border-b-0">
@@ -763,7 +783,6 @@
   <script>
     function appData() {
       return {
-        // CONFIGURACIÓN DE NUBE (JSONBin.io)
         binId: '6ada1480ffd5d1605382c335',
         masterKey: '$2a$10$BE8f0GOmC3mfw73ErHZf2uWgGvlSZY.SyhqRA3vQxdF3fL6Cn5WDq',
         
@@ -781,8 +800,7 @@
         reportType: 'Diario',
         bookings: [],
 
-        // Variables de Encabezados de Impresión
-        printMode: 'standard', // 'standard' o 'freshMaterial'
+        printMode: 'standard',
         printHeaderTitle: 'Reporte Diario',
         printHeaderSubtitle: 'Bitácora de Agendamiento e Insumos de Laboratorio',
         printHeaderDate: '',
@@ -813,12 +831,14 @@
           startPeriod: '1',
           durationPeriods: '1',
           needsFreshMaterial: false,
+          freshMaterialsList: [{ name: '', quantity: '' }],
           studentsCount: '',
           groupFormat: 'Parejas',
           reagentsList: [{ name: '', concentration: '', volume: '' }],
           materialsList: [{ name: '', quantity: '' }],
           fileData: null,
-          fileName: ''
+          fileName: '',
+          isExtemp: false
         },
 
         validationMessage: {
@@ -849,7 +869,7 @@
               }
             }
           } catch (e) {
-            console.error('Error al sincronizar desde la nube:', e);
+            console.error('Error al sincronizar:', e);
           } finally {
             this.isLoading = false;
           }
@@ -866,7 +886,7 @@
               },
               body: JSON.stringify(this.bookings)
             });
-            if (!res.ok) throw new Error('Error al guardar en el servidor');
+            if (!res.ok) throw new Error('Error al guardar');
           } catch (e) {
             console.error(e);
             Swal.fire({
@@ -880,7 +900,6 @@
         },
 
         get sortedListBookings() {
-          // Orden de llegada estricto (por timestamp de creación o ID)
           return [...this.filteredListBookings].sort((a, b) => (a.createdAt || a.id) - (b.createdAt || b.id));
         },
 
@@ -894,7 +913,7 @@
           const file = event.target.files[0];
           if (!file) return;
           if (file.size > 3 * 1024 * 1024) {
-            Swal.fire('Archivo muy grande', 'El archivo no debe exceder 3MB para no saturar la sincronización.', 'warning');
+            Swal.fire('Archivo muy grande', 'El archivo no debe exceder 3MB.', 'warning');
             return;
           }
           const reader = new FileReader();
@@ -916,7 +935,10 @@
         },
 
         getDisplaySpace(item) {
-          return item.labType === 'Salón de clases' && item.classroomNumber ? item.classroomNumber : item.labType;
+          if (item.labType === 'Salón de clases') {
+            return item.classroomNumber ? item.classroomNumber : 'Salón de clases';
+          }
+          return item.labType;
         },
 
         getLabStyle(labName) {
@@ -940,6 +962,19 @@
             case 'Laboratorio 30': return 'bg-rose-100 text-rose-800 border-rose-200';
             case 'Salón de clases': return 'bg-slate-200 text-slate-800 border-slate-300';
             default: return 'bg-slate-100 text-slate-800';
+          }
+        },
+
+        addFreshMaterialRow() {
+          if (!this.formData.freshMaterialsList) {
+            this.formData.freshMaterialsList = [];
+          }
+          this.formData.freshMaterialsList.push({ name: '', quantity: '' });
+        },
+
+        removeFreshMaterialRow(index) {
+          if (this.formData.freshMaterialsList.length > 1) {
+            this.formData.freshMaterialsList.splice(index, 1);
           }
         },
 
@@ -1022,7 +1057,6 @@
           return this.bookings.filter(b => days.includes(b.date) && (this.selectedLabFilter === 'ALL' || b.labType === this.selectedLabFilter));
         },
 
-        // REGLAS Y EVALUACIÓN DE EXTEMPORÁNEAS
         validateRules() {
           if (!this.formData.date) {
             this.validationMessage = { isValid: false, text: 'Seleccione una fecha para la práctica.' };
@@ -1044,13 +1078,11 @@
           if (this.formData.needsFreshMaterial) {
             const diffDays = (targetDate - now) / (1000 * 60 * 60 * 24);
             
-            // Regla 1: Mínimo 2 días de anticipación
             if (diffDays < 2) {
               isExtemp = true;
               messages.push('Material fresco requiere mínimo 2 días de anticipación.');
             }
 
-            // Regla 2: Solicitarse antes del miércoles a las 12:00 PM previo
             const targetDayOfWeek = targetDate.getDay(); 
             const diffToMonday = targetDate.getDate() - targetDayOfWeek + (targetDayOfWeek === 0 ? -6 : 1);
             const practiceMonday = new Date(targetDate);
@@ -1094,6 +1126,7 @@
             startPeriod: '1',
             durationPeriods: '1',
             needsFreshMaterial: false,
+            freshMaterialsList: [{ name: '', quantity: '' }],
             studentsCount: '',
             groupFormat: 'Parejas',
             reagentsList: [{ name: '', concentration: '', volume: '' }],
@@ -1104,6 +1137,9 @@
           };
           this.validationMessage = { isValid: false, text: '' };
           this.isModalOpen = true;
+          this.$nextTick(() => {
+            if (this.$refs.modalForm) this.$refs.modalForm.scrollTop = 0;
+          });
         },
 
         editBooking(item) {
@@ -1113,11 +1149,17 @@
           if (!this.formData.materialsList || this.formData.materialsList.length === 0) {
             this.formData.materialsList = [{ name: '', quantity: '' }];
           }
+          if (!this.formData.freshMaterialsList || this.formData.freshMaterialsList.length === 0) {
+            this.formData.freshMaterialsList = [{ name: '', quantity: '' }];
+          }
           if (!this.formData.reagentsList) {
             this.formData.reagentsList = [{ name: '', concentration: '', volume: '' }];
           }
           this.validateRules();
           this.isModalOpen = true;
+          this.$nextTick(() => {
+            if (this.$refs.modalForm) this.$refs.modalForm.scrollTop = 0;
+          });
         },
 
         closeModal() {
@@ -1133,7 +1175,6 @@
           this.isFreshMaterialModalOpen = true;
         },
 
-        // IMPRIMIR PRACTICA INDIVIDUAL
         printSingleBooking(item) {
           this.printMode = 'standard';
           this.printHeaderTitle = 'Reporte de Práctica de Laboratorio';
@@ -1147,14 +1188,13 @@
           }, 300);
         },
 
-        // IMPRIMIR REPORTES PERIODICOS
         triggerPrintReport() {
           this.printMode = 'standard';
           this.isPrintModalOpen = false;
           
           const baseDate = new Date(this.printDate + 'T00:00:00');
           this.printHeaderTitle = `Reporte ${this.reportType}`;
-          this.printHeaderSubtitle = 'Bitácora de Laboratorio';
+          this.printHeaderSubtitle = 'Bitácora de Agendamiento e Insumos de Laboratorio';
 
           if (this.reportType === 'Diario') {
             this.printHeaderDate = this.formatDisplayDate(this.printDate);
@@ -1188,7 +1228,6 @@
           }, 300);
         },
 
-        // IMPRIMIR REPORTE DE MATERIAL FRESCO
         triggerFreshMaterialPrint() {
           this.printMode = 'freshMaterial';
           this.isFreshMaterialModalOpen = false;
@@ -1217,6 +1256,7 @@
         async submitForm() {
           const cleanMaterials = this.formData.materialsList.filter(m => m.name.trim() !== '');
           const cleanReagents = this.formData.reagentsList.filter(r => r.name.trim() !== '');
+          const cleanFreshMaterials = this.formData.freshMaterialsList ? this.formData.freshMaterialsList.filter(f => f.name.trim() !== '') : [];
 
           if (this.editingBookingId) {
             const index = this.bookings.findIndex(b => b.id === this.editingBookingId);
@@ -1226,16 +1266,18 @@
                 id: this.editingBookingId,
                 materialsList: cleanMaterials,
                 reagentsList: cleanReagents,
+                freshMaterialsList: cleanFreshMaterials,
                 status: 'Aprobada'
               };
             }
           } else {
             const newBooking = {
               id: Date.now(),
-              createdAt: Date.now(), // Orden de llegada
+              createdAt: Date.now(),
               ...this.formData,
               materialsList: cleanMaterials,
               reagentsList: cleanReagents,
+              freshMaterialsList: cleanFreshMaterials,
               status: 'Aprobada'
             };
             this.bookings.push(newBooking);
