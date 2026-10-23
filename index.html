@@ -107,12 +107,11 @@
   <template x-if="currentUser">
     <div class="flex flex-col min-h-screen">
       
-      <!-- ENCABEZADO INSTITUCIONAL CON PERFIL DILIGENTE -->
+      <!-- ENCABEZADO INSTITUCIONAL -->
       <header class="bg-brand-600 text-white shadow-lg sticky top-0 z-30 no-print border-b border-brand-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between h-20 items-center">
             
-            <!-- Logo y Datos Institucionales -->
             <div class="flex items-center gap-3.5">
               <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20 shadow-inner">
                 <i class="ph ph-flask text-3xl"></i>
@@ -123,16 +122,12 @@
               </div>
             </div>
 
-            <!-- Identificación del Usuario y Acciones -->
             <div class="flex items-center gap-2 sm:gap-3">
-              
-              <!-- Badge Usuario -->
               <div class="hidden lg:flex flex-col text-right mr-2">
                 <span class="text-sm font-black text-white" x-text="currentUser.name"></span>
                 <span class="text-xs font-semibold text-rose-200" x-text="currentUser.role === 'admin' ? 'Laboratorista (Acceso Total)' : 'Profesor'"></span>
               </div>
 
-              <!-- Alerta Próximas -->
               <button @click="showUpcomingAlertManual()" class="relative inline-flex items-center gap-2 bg-brand-700/80 hover:bg-brand-800 text-white font-bold text-base px-3.5 py-2.5 rounded-lg transition border border-white/20">
                 <i class="ph ph-bell text-xl"></i>
                 <span class="hidden sm:inline">Próximas</span>
@@ -156,7 +151,6 @@
                 <span>Agendar Práctica</span>
               </button>
 
-              <!-- Cerrar Sesión -->
               <button @click="logout()" class="p-2.5 bg-brand-800/80 hover:bg-brand-900 text-rose-100 rounded-lg border border-white/20 transition" title="Cerrar Sesión">
                 <i class="ph ph-sign-out text-xl"></i>
               </button>
@@ -168,7 +162,6 @@
       <!-- CONTENIDO PRINCIPAL -->
       <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 no-print">
 
-        <!-- REQUISITOS INSTITUCIONALES -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="bg-white border-l-4 border-l-brand-600 border border-slate-200 rounded-r-xl p-4 shadow-xs flex gap-3.5 items-center">
             <div class="p-3 bg-slate-100 text-brand-700 rounded-lg shrink-0">
@@ -191,9 +184,7 @@
           </div>
         </div>
 
-        <!-- PANEL DE CONTROLES -->
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-          <!-- Navegación de Semana -->
           <div class="flex items-center gap-2">
             <button @click="changeWeek(-1)" class="p-2.5 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 transition" title="Semana Anterior">
               <i class="ph ph-caret-left text-xl"></i>
@@ -207,7 +198,6 @@
             </button>
           </div>
 
-          <!-- Filtro por Ubicación -->
           <div class="flex items-center gap-2.5 w-full lg:w-auto">
             <label class="text-base font-bold text-slate-600 uppercase tracking-wider shrink-0">Ubicación:</label>
             <select x-model="selectedLabFilter" class="text-base font-semibold bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-800 focus:ring-2 focus:ring-brand-600">
@@ -218,7 +208,6 @@
             </select>
           </div>
 
-          <!-- Vistas y Descarga -->
           <div class="flex items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end">
             <div class="flex items-center border border-slate-200 rounded-lg p-1 bg-slate-100">
               <button @click="currentView = 'calendar'" :class="currentView === 'calendar' ? 'bg-white shadow-xs text-slate-900 font-black' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="px-3.5 py-2 text-base rounded-md transition flex items-center gap-1.5">
@@ -273,6 +262,7 @@
                               <div class="flex items-center justify-between mb-1.5 gap-1 flex-wrap">
                                 <span class="text-xs font-black px-2 py-0.5 rounded border uppercase" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
                                 <div class="flex items-center gap-1">
+                                  <span x-show="item.isIA" class="text-[10px] font-black px-1.5 py-0.5 rounded bg-indigo-600 text-white uppercase tracking-wider" title="Internal Assessment">IA</span>
                                   <span x-show="item.isExtemp" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-600 text-white uppercase tracking-wider">Extemporánea</span>
                                   <span x-show="item.needsFreshMaterial" title="Requiere Material Fresco" class="text-amber-700"><i class="ph ph-plant-bold text-base"></i></span>
                                 </div>
@@ -329,7 +319,10 @@
                       <span class="text-sm font-bold px-2.5 py-1 rounded uppercase border" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
                     </td>
                     <td class="p-4">
-                      <div class="font-bold text-slate-900 text-base" x-text="item.practiceName || 'Práctica General'"></div>
+                      <div class="font-bold text-slate-900 text-base flex items-center gap-1.5">
+                        <span x-text="item.practiceName || 'Práctica General'"></span>
+                        <span x-show="item.isIA" class="text-[10px] font-black px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-300">INTERNAL ASSESSMENT</span>
+                      </div>
                       <div class="font-black text-sm uppercase" :class="getSubjectColorClass(item.subject)" x-text="item.subject"></div>
                     </td>
                     <td class="p-4">
@@ -355,7 +348,6 @@
                       <button @click="viewDetail(item)" class="text-slate-600 hover:text-slate-900 p-2 rounded-lg hover:bg-slate-100 transition"><i class="ph ph-eye text-xl"></i></button>
                       <button @click="printSingleBooking(item)" class="text-slate-600 hover:text-slate-900 p-2 rounded-lg hover:bg-slate-100 transition"><i class="ph ph-printer text-xl"></i></button>
                       
-                      <!-- SOLO SI TIENE PERMISO (ES DEL MAESTRO O ES LABORATORISTA) -->
                       <template x-if="canEditOrDelete(item)">
                         <div class="inline-block">
                           <button @click="editBooking(item)" class="text-slate-600 hover:text-brand-700 p-2 rounded-lg hover:bg-brand-50 transition"><i class="ph ph-pencil-simple text-xl"></i></button>
@@ -372,7 +364,7 @@
 
       </main>
 
-      <!-- MODAL FORMULARIO -->
+      <!-- MODAL FORMULARIO COMPLETO -->
       <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
         <div @click.outside="closeModal()" class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
           
@@ -391,6 +383,42 @@
             <div>
               <label class="block text-base font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">Nombre / Tema de la Práctica *</label>
               <input type="text" x-model="formData.practiceName" required placeholder="Ej. Observación de Mitosis y Meiosis, Titulación Ácido-Base..." class="w-full text-base font-semibold px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 bg-white">
+            </div>
+
+            <!-- SECCIÓN INTERNAL ASSESSMENT (IA) -->
+            <div class="p-4 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-3">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" x-model="formData.isIA" class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-600">
+                <span class="text-base font-bold text-indigo-950 uppercase tracking-wider">¿Es una solicitud para Internal Assessment (IA)?</span>
+              </label>
+
+              <div x-show="formData.isIA" x-transition class="pt-3 border-t border-indigo-200 space-y-3">
+                <div>
+                  <label class="block text-sm font-bold text-indigo-900 mb-1">Nombre / ID del Alumno Solicitante *</label>
+                  <input type="text" x-model="formData.studentNameIA" :required="formData.isIA" placeholder="Ej. Juan Pérez - Alumno de 12°" class="w-full text-base px-3 py-2 border border-indigo-300 rounded-lg bg-white font-semibold">
+                </div>
+
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <label class="text-sm font-bold text-indigo-900 uppercase tracking-wider">Material Específico para IA</label>
+                    <button type="button" @click="addIAMaterialRow()" class="text-xs font-bold text-indigo-900 hover:bg-indigo-100 bg-white border border-indigo-300 px-2.5 py-1 rounded-md transition">
+                      + Agregar Insumo IA
+                    </button>
+                  </div>
+
+                  <div class="space-y-2">
+                    <template x-for="(item, index) in formData.iaMaterialsList" :key="index">
+                      <div class="flex gap-2 items-center">
+                        <input type="text" x-model="item.name" placeholder="Material específico de investigación..." class="flex-1 text-base px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                        <input type="text" x-model="item.quantity" placeholder="Cantidad / Especificación" class="w-40 text-base px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                        <button type="button" @click="removeIAMaterialRow(index)" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg">
+                          <i class="ph ph-trash text-xl"></i>
+                        </button>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -414,10 +442,10 @@
               <div :class="formData.labType === 'Salón de clases' ? '' : 'sm:col-span-2'">
                 <label class="block text-base font-bold text-slate-800 uppercase tracking-wider mb-1.5">Asignatura *</label>
                 <select x-model="formData.subject" required class="w-full text-base font-bold px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 bg-white">
-                  <option value="Biología">Biología </option>
-                  <option value="Física">Física </option>
-                  <option value="Química">Química </option>
-                  <option value="Ciencias Integradas">Ciencias Integradas </option>
+                  <option value="Biología">Biología</option>
+                  <option value="Física">Física</option>
+                  <option value="Química">Química</option>
+                  <option value="Ciencias Integradas">Ciencias Integradas</option>
                 </select>
               </div>
             </div>
@@ -528,6 +556,31 @@
               </p>
             </div>
 
+            <!-- SECCIÓN MATERIAL DE PAPELERÍA -->
+            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-2">
+              <div class="flex justify-between items-center">
+                <label class="text-base font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
+                  <i class="ph ph-pencil-line text-brand-600 text-xl"></i>
+                  <span>Material de Papelería</span>
+                </label>
+                <button type="button" @click="addStationeryRow()" class="text-base font-bold text-slate-700 hover:bg-slate-200 bg-white border border-slate-300 px-3 py-1 rounded-md transition flex items-center gap-1">
+                  <i class="ph ph-plus-bold"></i> Agregar Articulo
+                </button>
+              </div>
+
+              <div class="space-y-2">
+                <template x-for="(item, index) in formData.stationeryList" :key="index">
+                  <div class="flex gap-2 items-center">
+                    <input type="text" x-model="item.name" placeholder="Ej. Papel milimétrico, colores, calculadoras, reglas..." class="flex-1 text-base px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                    <input type="text" x-model="item.quantity" placeholder="Cantidad / Detalle" class="w-36 text-base px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                    <button type="button" @click="removeStationeryRow(index)" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg">
+                      <i class="ph ph-trash text-xl"></i>
+                    </button>
+                  </div>
+                </template>
+              </div>
+            </div>
+
             <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-2">
               <div class="flex justify-between items-center">
                 <label class="text-base font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
@@ -579,7 +632,7 @@
 
             <div class="flex justify-end gap-3 pt-3 border-t border-slate-200 sticky bottom-0 bg-white py-2">
               <button type="button" @click="closeModal()" class="px-5 py-2.5 text-base font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-              <button type="submit" :disabled="isLoading" class="px-6 py-2.5 text-base font-black text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-xs" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar')"></button>
+              <button type="submit" :disabled="isLoading" class="px-6 py-2.5 text-base font-black text-white bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 rounded-lg transition shadow-xs" x-text="isLoading ? 'Guardando...' : (editingBookingId ? 'Guardar Cambios' : 'Confirmar Agendamiento')"></button>
             </div>
 
           </form>
@@ -638,8 +691,9 @@
             <div>
               <div class="p-6 bg-slate-50 border-b border-slate-200 flex justify-between items-start">
                 <div>
-                  <div class="flex items-center gap-2 mb-1.5">
+                  <div class="flex items-center gap-2 mb-1.5 flex-wrap">
                     <span class="inline-block px-3 py-0.5 rounded text-sm font-black uppercase border" :class="getLabBadgeStyle(selectedBooking.labType)" x-text="getDisplaySpace(selectedBooking)"></span>
+                    <span x-show="selectedBooking.isIA" class="text-xs font-black px-2 py-0.5 rounded bg-indigo-600 text-white uppercase">INTERNAL ASSESSMENT</span>
                     <span x-show="selectedBooking.isExtemp" class="text-xs font-bold px-2 py-0.5 rounded bg-brand-600 text-white uppercase">Extemporánea</span>
                   </div>
                   <h3 class="text-lg sm:text-xl font-black text-slate-900" x-text="selectedBooking.practiceName || 'Práctica General'"></h3>
@@ -656,6 +710,24 @@
               </div>
 
               <div class="p-6 space-y-4 text-base text-slate-700">
+                <div x-show="selectedBooking.isIA" class="bg-indigo-50 p-3.5 rounded-lg border border-indigo-200 space-y-2">
+                  <div>
+                    <span class="text-indigo-950 font-black block text-xs uppercase tracking-wider">Alumno Solicitante (IA):</span>
+                    <span class="font-bold text-indigo-900" x-text="selectedBooking.studentNameIA || 'Sin especificar'"></span>
+                  </div>
+                  <div x-show="selectedBooking.iaMaterialsList && selectedBooking.iaMaterialsList.length > 0">
+                    <span class="text-indigo-950 font-black block text-xs uppercase tracking-wider mt-2 mb-1">Insumos Solicitados para IA:</span>
+                    <div class="space-y-1">
+                      <template x-for="iamat in selectedBooking.iaMaterialsList" :key="iamat.name">
+                        <div class="flex justify-between border-b border-indigo-200/60 pb-1 text-sm font-semibold text-indigo-900">
+                          <span x-text="iamat.name"></span>
+                          <span x-text="iamat.quantity"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-lg border border-slate-200">
                   <div>
                     <span class="text-slate-500 block text-xs font-bold uppercase">Fecha:</span>
@@ -685,6 +757,18 @@
                       <div class="flex justify-between border-b border-amber-200/60 pb-1 last:border-b-0 text-base">
                         <span class="font-bold text-amber-900" x-text="fmat.name"></span>
                         <span class="text-amber-800 font-semibold" x-text="fmat.quantity"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
+                <div x-show="selectedBooking.stationeryList && selectedBooking.stationeryList.length > 0">
+                  <span class="text-slate-500 block text-xs font-bold uppercase mb-1">Material de Papelería:</span>
+                  <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+                    <template x-for="st in selectedBooking.stationeryList" :key="st.name">
+                      <div class="flex justify-between border-b border-slate-200 pb-1 last:border-b-0 text-base">
+                        <span class="font-semibold text-slate-800" x-text="st.name"></span>
+                        <span class="text-slate-600" x-text="st.quantity"></span>
                       </div>
                     </template>
                   </div>
@@ -770,10 +854,12 @@
               <div>
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-black uppercase px-2 py-0.5 rounded border" :class="getLabBadgeStyle(item.labType)" x-text="getDisplaySpace(item)"></span>
+                  <span x-show="item.isIA" class="text-xs font-black px-2 py-0.5 rounded bg-indigo-600 text-white uppercase">Internal Assessment</span>
                   <span x-show="item.isExtemp" class="text-xs font-bold px-2 py-0.5 rounded bg-brand-600 text-white uppercase">Práctica Extemporánea</span>
                 </div>
                 <h2 class="text-lg font-black text-slate-900 mt-1" x-text="(item.practiceName ? item.practiceName + ' - ' : '') + item.subject"></h2>
                 <p class="text-sm text-slate-700 font-semibold" x-text="'Profesor: ' + item.teacher + (item.labTech ? ' | Laboratorista: ' + item.labTech : '')"></p>
+                <p x-show="item.isIA" class="text-sm text-indigo-900 font-bold" x-text="'Alumno IA: ' + (item.studentNameIA || 'Sin indicar')"></p>
               </div>
               <div class="text-right">
                 <span class="text-sm font-bold bg-slate-100 px-3 py-1 rounded border border-slate-300" x-text="formatDisplayDate(item.date) + ' - Periodo ' + item.startPeriod"></span>
@@ -781,11 +867,29 @@
               </div>
             </div>
 
+            <div x-show="item.isIA && item.iaMaterialsList && item.iaMaterialsList.length > 0" class="p-3 bg-indigo-50 border border-indigo-200 rounded-md mb-2">
+              <h4 class="text-sm font-black uppercase text-indigo-900 mb-1">Material Especial para IA:</h4>
+              <ul class="list-disc pl-5 text-sm text-indigo-900 font-semibold">
+                <template x-for="iamat in item.iaMaterialsList" :key="iamat.name">
+                  <li x-text="iamat.name + (iamat.quantity ? ' - ' + iamat.quantity : '')"></li>
+                </template>
+              </ul>
+            </div>
+
             <div x-show="item.freshMaterialsList && item.freshMaterialsList.length > 0" class="p-3 bg-amber-50/80 border border-amber-200 rounded-md mb-2">
               <h4 class="text-sm font-black uppercase text-amber-900 mb-1">Insumos Frescos o Especiales:</h4>
               <ul class="list-disc pl-5 text-sm text-amber-900 font-semibold">
                 <template x-for="fmat in item.freshMaterialsList" :key="fmat.name">
                   <li x-text="fmat.name + (fmat.quantity ? ' - ' + fmat.quantity : '')"></li>
+                </template>
+              </ul>
+            </div>
+
+            <div x-show="item.stationeryList && item.stationeryList.length > 0" class="mb-2">
+              <h4 class="text-sm font-black uppercase text-slate-700 mb-1">Papelería Requerida:</h4>
+              <ul class="list-disc pl-5 text-sm text-slate-800 font-medium">
+                <template x-for="st in item.stationeryList" :key="st.name">
+                  <li x-text="st.name + (st.quantity ? ' (' + st.quantity + ')' : '')"></li>
                 </template>
               </ul>
             </div>
@@ -876,7 +980,6 @@
   <script>
     function appData() {
       return {
-        // CATÁLOGO DE USUARIOS Y CONTRASEÑAS
         usersList: [
           { id: 'lourdes', name: 'Lourdes Delgado', title: 'Laboratorista', role: 'admin', pass: 'lourdes2026' },
           { id: 'mafer', name: 'Mafer Reyes', title: 'Laboratorista', role: 'admin', pass: 'mafer2026' },
@@ -938,6 +1041,9 @@
 
         formData: {
           practiceName: '',
+          isIA: false,
+          studentNameIA: '',
+          iaMaterialsList: [{ name: '', quantity: '' }],
           labType: 'Laboratorio 26',
           classroomNumber: '',
           teacher: '',
@@ -948,6 +1054,7 @@
           durationPeriods: '1',
           needsFreshMaterial: false,
           freshMaterialsList: [{ name: '', quantity: '' }],
+          stationeryList: [{ name: '', quantity: '' }],
           studentsCount: '',
           groupFormat: 'Parejas',
           reagentsList: [{ name: '', concentration: '', volume: '' }],
@@ -1000,12 +1107,9 @@
           localStorage.removeItem('lancaster_user_id');
         },
 
-        // VALIDACIÓN DE PERMISO EDITAR/BORRAR
         canEditOrDelete(item) {
           if (!this.currentUser) return false;
-          // Si es laboratorista (admin), puede modificar cualquier práctica
           if (this.currentUser.role === 'admin') return true;
-          // Si es profesor, solo puede modificar sus propias prácticas
           return item.teacher === this.currentUser.name;
         },
 
@@ -1196,6 +1300,32 @@
           }
         },
 
+        addIAMaterialRow() {
+          if (!this.formData.iaMaterialsList) {
+            this.formData.iaMaterialsList = [];
+          }
+          this.formData.iaMaterialsList.push({ name: '', quantity: '' });
+        },
+
+        removeIAMaterialRow(index) {
+          if (this.formData.iaMaterialsList.length > 1) {
+            this.formData.iaMaterialsList.splice(index, 1);
+          }
+        },
+
+        addStationeryRow() {
+          if (!this.formData.stationeryList) {
+            this.formData.stationeryList = [];
+          }
+          this.formData.stationeryList.push({ name: '', quantity: '' });
+        },
+
+        removeStationeryRow(index) {
+          if (this.formData.stationeryList.length > 1) {
+            this.formData.stationeryList.splice(index, 1);
+          }
+        },
+
         addFreshMaterialRow() {
           if (!this.formData.freshMaterialsList) {
             this.formData.freshMaterialsList = [];
@@ -1349,6 +1479,9 @@
           this.editingBookingId = null;
           this.formData = {
             practiceName: '',
+            isIA: false,
+            studentNameIA: '',
+            iaMaterialsList: [{ name: '', quantity: '' }],
             labType: 'Laboratorio 26',
             classroomNumber: '',
             teacher: this.currentUser.role === 'teacher' ? this.currentUser.name : '',
@@ -1359,6 +1492,7 @@
             durationPeriods: '1',
             needsFreshMaterial: false,
             freshMaterialsList: [{ name: '', quantity: '' }],
+            stationeryList: [{ name: '', quantity: '' }],
             studentsCount: '',
             groupFormat: 'Parejas',
             reagentsList: [{ name: '', concentration: '', volume: '' }],
@@ -1387,6 +1521,12 @@
           }
           if (!this.formData.freshMaterialsList || this.formData.freshMaterialsList.length === 0) {
             this.formData.freshMaterialsList = [{ name: '', quantity: '' }];
+          }
+          if (!this.formData.stationeryList || this.formData.stationeryList.length === 0) {
+            this.formData.stationeryList = [{ name: '', quantity: '' }];
+          }
+          if (!this.formData.iaMaterialsList || this.formData.iaMaterialsList.length === 0) {
+            this.formData.iaMaterialsList = [{ name: '', quantity: '' }];
           }
           if (!this.formData.reagentsList) {
             this.formData.reagentsList = [{ name: '', concentration: '', volume: '' }];
@@ -1493,6 +1633,8 @@
           const cleanMaterials = this.formData.materialsList.filter(m => m.name.trim() !== '');
           const cleanReagents = this.formData.reagentsList.filter(r => r.name.trim() !== '');
           const cleanFreshMaterials = this.formData.freshMaterialsList ? this.formData.freshMaterialsList.filter(f => f.name.trim() !== '') : [];
+          const cleanStationery = this.formData.stationeryList ? this.formData.stationeryList.filter(s => s.name.trim() !== '') : [];
+          const cleanIAMaterials = this.formData.iaMaterialsList ? this.formData.iaMaterialsList.filter(i => i.name.trim() !== '') : [];
 
           if (this.editingBookingId) {
             const index = this.bookings.findIndex(b => b.id === this.editingBookingId);
@@ -1503,6 +1645,8 @@
                 materialsList: cleanMaterials,
                 reagentsList: cleanReagents,
                 freshMaterialsList: cleanFreshMaterials,
+                stationeryList: cleanStationery,
+                iaMaterialsList: cleanIAMaterials,
                 status: 'Aprobada'
               };
             }
@@ -1514,6 +1658,8 @@
               materialsList: cleanMaterials,
               reagentsList: cleanReagents,
               freshMaterialsList: cleanFreshMaterials,
+              stationeryList: cleanStationery,
+              iaMaterialsList: cleanIAMaterials,
               status: 'Aprobada'
             };
             this.bookings.push(newBooking);
@@ -1578,10 +1724,10 @@
             return;
           }
 
-          let csvContent = "data:text/csv;charset=utf-8,ID_Orden,Timestamp,Nombre_Practica,Ubicacion,Profesor,Laboratorista,Materia,Fecha,Periodo_Inicio,Duracion_Periodos,Alumnos,Formato,Material_Fresco,Extemporanea,Estado\n";
+          let csvContent = "data:text/csv;charset=utf-8,ID_Orden,Timestamp,Nombre_Practica,Es_IA,Alumno_IA,Ubicacion,Profesor,Laboratorista,Materia,Fecha,Periodo_Inicio,Duracion_Periodos,Alumnos,Formato,Material_Fresco,Extemporanea,Estado\n";
           this.sortedListBookings.forEach(b => {
             const space = b.labType === 'Salón de clases' ? b.classroomNumber : b.labType;
-            csvContent += `${b.id},"${this.formatCreatedAt(b.createdAt)}","${b.practiceName || ''}","${space}","${b.teacher}","${b.labTech || ''}","${b.subject}",${b.date},${b.startPeriod},${b.durationPeriods},${b.studentsCount},"${b.groupFormat}",${b.needsFreshMaterial ? 'SI' : 'NO'},${b.isExtemp ? 'SI' : 'NO'},${b.status}\n`;
+            csvContent += `${b.id},"${this.formatCreatedAt(b.createdAt)}","${b.practiceName || ''}",${b.isIA ? 'SI' : 'NO'},"${b.studentNameIA || ''}","${space}","${b.teacher}","${b.labTech || ''}","${b.subject}",${b.date},${b.startPeriod},${b.durationPeriods},${b.studentsCount},"${b.groupFormat}",${b.needsFreshMaterial ? 'SI' : 'NO'},${b.isExtemp ? 'SI' : 'NO'},${b.status}\n`;
           });
 
           const encodedUri = encodeURI(csvContent);
