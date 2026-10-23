@@ -123,32 +123,41 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3">
-              <div class="hidden lg:flex flex-col text-right mr-2">
-                <span class="text-sm font-black text-white" x-text="currentUser.name"></span>
-                <span class="text-xs font-semibold text-rose-200" x-text="currentUser.role === 'admin' ? 'Laboratorista (Acceso Total)' : 'Profesor'"></span>
-              </div>
+              <!-- BOTÓN CONSULTAR MI HORARIO -->
+              <button @click="openScheduleModal()" class="inline-flex items-center gap-2 bg-brand-700/80 hover:bg-brand-800 text-white font-bold text-base px-3.5 py-2.5 rounded-lg transition border border-white/20" title="Ver mi horario de clases">
+                <i class="ph ph-clock-counter-clockwise text-xl"></i>
+                <span class="hidden md:inline">Mi Horario</span>
+              </button>
 
-              <button @click="showUpcomingAlertManual()" class="relative inline-flex items-center gap-2 bg-brand-700/80 hover:bg-brand-800 text-white font-bold text-base px-3.5 py-2.5 rounded-lg transition border border-white/20">
+              <!-- BOTÓN EDITAR PERFIL DE USUARIO -->
+              <button @click="openProfileModal()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white p-2 sm:px-3 sm:py-2 rounded-lg transition border border-white/20 text-left" title="Editar Mi Perfil">
+                <i class="ph ph-user-circle text-2xl"></i>
+                <div class="hidden lg:flex flex-col">
+                  <span class="text-sm font-black text-white leading-tight" x-text="currentUser.name"></span>
+                  <span class="text-xs font-semibold text-rose-200 leading-none" x-text="currentUser.role === 'admin' ? 'Laboratorista' : 'Profesor'"></span>
+                </div>
+              </button>
+
+              <button @click="showUpcomingAlertManual()" class="relative inline-flex items-center gap-2 bg-brand-700/80 hover:bg-brand-800 text-white font-bold text-base px-3 py-2.5 rounded-lg transition border border-white/20" title="Prácticas Próximas">
                 <i class="ph ph-bell text-xl"></i>
-                <span class="hidden sm:inline">Próximas</span>
                 <template x-if="upcomingBookingsCount > 0">
                   <span class="bg-amber-400 text-brand-900 font-black text-sm px-2 py-0.5 rounded-full border border-amber-300" x-text="upcomingBookingsCount"></span>
                 </template>
               </button>
 
-              <button @click="openFreshMaterialModal()" class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-base px-4 py-2.5 rounded-lg transition shadow-xs border border-amber-500">
+              <button @click="openFreshMaterialModal()" class="hidden sm:inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-base px-3.5 py-2.5 rounded-lg transition shadow-xs border border-amber-500">
                 <i class="ph ph-plant text-xl"></i>
-                <span>PDF Material Fresco</span>
+                <span>Material Fresco</span>
               </button>
 
-              <button @click="openDailyPrintModal()" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold text-base px-4 py-2.5 rounded-lg transition border border-white/20">
+              <button @click="openDailyPrintModal()" class="hidden sm:inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold text-base px-3.5 py-2.5 rounded-lg transition border border-white/20">
                 <i class="ph ph-printer text-xl"></i>
-                <span>Reportes PDF</span>
+                <span>Reportes</span>
               </button>
 
               <button @click="openModal()" class="inline-flex items-center gap-2 bg-white text-brand-800 hover:bg-slate-50 font-black text-base px-4 py-2.5 rounded-lg transition shadow-md border border-white">
                 <i class="ph ph-plus-circle text-xl text-brand-600"></i>
-                <span>Agendar Práctica</span>
+                <span>Agendar</span>
               </button>
 
               <button @click="logout()" class="p-2.5 bg-brand-800/80 hover:bg-brand-900 text-rose-100 rounded-lg border border-white/20 transition" title="Cerrar Sesión">
@@ -367,6 +376,121 @@
         </div>
 
       </main>
+
+      <!-- MODAL CONSULTA DE HORARIO INDIVIDUAL -->
+      <div x-show="isScheduleModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+        <div @click.outside="isScheduleModalOpen = false" class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+          <div class="px-6 py-4 bg-brand-600 text-white flex justify-between items-center shrink-0 border-b border-brand-800">
+            <div>
+              <h2 class="text-xl font-black uppercase tracking-wide flex items-center gap-2">
+                <i class="ph ph-clock-counter-clockwise text-2xl"></i> Mi Horario Asignado
+              </h2>
+              <p class="text-base text-rose-100/90 font-medium" x-text="currentUser.name + ' (' + currentUser.title + ')'"></p>
+            </div>
+            <button @click="isScheduleModalOpen = false" class="text-white/80 hover:text-white p-1 rounded-lg transition">
+              <i class="ph ph-x text-2xl"></i>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+            <template x-if="currentUser.scheduleImage">
+              <div class="space-y-3">
+                <img :src="currentUser.scheduleImage" alt="Horario de Clases" class="w-full rounded-xl border border-slate-300 shadow-xs">
+                <div class="text-right">
+                  <a :href="currentUser.scheduleImage" download="mi_horario.png" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-700 hover:text-brand-900">
+                    <i class="ph ph-download-simple text-lg"></i> Descargar Horario
+                  </a>
+                </div>
+              </div>
+            </template>
+
+            <template x-if="currentUser.scheduleNotes">
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <h4 class="text-xs font-black uppercase tracking-wider text-slate-500">Observaciones / Detalles de Horario:</h4>
+                <p class="text-base text-slate-800 font-medium whitespace-pre-line" x-text="currentUser.scheduleNotes"></p>
+              </div>
+            </template>
+
+            <template x-if="!currentUser.scheduleImage && !currentUser.scheduleNotes">
+              <div class="text-center py-8 space-y-3">
+                <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center text-3xl">
+                  <i class="ph ph-calendar-x"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-800">Sin Horario Registrado</h3>
+                <p class="text-sm text-slate-500 max-w-sm mx-auto">No has subido la imagen o detalles de tu horario. Puedes agregarlo desde la opción de <strong>Editar Perfil</strong>.</p>
+                <button @click="isScheduleModalOpen = false; openProfileModal()" class="px-4 py-2 bg-brand-50 text-brand-700 border border-brand-200 font-bold rounded-lg text-sm hover:bg-brand-100 transition">
+                  Ir a Mi Perfil
+                </button>
+              </div>
+            </template>
+          </div>
+
+          <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 text-right">
+            <button @click="isScheduleModalOpen = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-lg text-base">Cerrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL EDITAR PERFIL DE USUARIO Y SUBIR HORARIO -->
+      <div x-show="isProfileModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+        <div @click.outside="isProfileModalOpen = false" class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+          <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center shrink-0 border-b border-slate-800">
+            <div>
+              <h2 class="text-xl font-black uppercase tracking-wide flex items-center gap-2">
+                <i class="ph ph-user-gear text-2xl"></i> Mi Perfil de Usuario
+              </h2>
+              <p class="text-base text-slate-300 font-medium">Actualiza tu información y horario personal</p>
+            </div>
+            <button @click="isProfileModalOpen = false" class="text-white/80 hover:text-white p-1 rounded-lg transition">
+              <i class="ph ph-x text-2xl"></i>
+            </button>
+          </div>
+
+          <form @submit.prevent="saveUserProfile()" class="p-6 space-y-4 overflow-y-auto max-h-[75vh] text-base">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre Completo *</label>
+              <input type="text" x-model="profileForm.name" required class="w-full text-base font-semibold px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 bg-white">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 uppercase tracking-wider mb-1">Título / Puesto *</label>
+              <input type="text" x-model="profileForm.title" required class="w-full text-base font-semibold px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 bg-white">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 uppercase tracking-wider mb-1">Nueva Contraseña <span class="text-slate-400 font-normal lowercase">(dejar en blanco para mantener la actual)</span></label>
+              <input type="password" x-model="profileForm.newPassword" placeholder="Opcional" class="w-full text-base font-semibold px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 bg-white">
+            </div>
+
+            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
+              <label class="block text-sm font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
+                <i class="ph ph-image text-brand-600 text-xl"></i>
+                <span>Imagen de mi Horario (JPG/PNG)</span>
+              </label>
+              <input type="file" @change="handleScheduleUpload($event)" accept="image/*" class="w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+              
+              <template x-if="profileForm.scheduleImage">
+                <div class="relative mt-2">
+                  <img :src="profileForm.scheduleImage" class="max-h-40 rounded-lg border border-slate-300 object-cover">
+                  <button type="button" @click="profileForm.scheduleImage = null" class="absolute top-2 right-2 bg-rose-600 text-white p-1 rounded-full shadow-md hover:bg-rose-700">
+                    <i class="ph ph-x"></i>
+                  </button>
+                </div>
+              </template>
+            </div>
+
+            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-2">
+              <label class="block text-sm font-bold text-slate-800 uppercase tracking-wider">Notas de Horario / Disponibilidad</label>
+              <textarea x-model="profileForm.scheduleNotes" rows="3" placeholder="Ej. Lunes 1° a 3° periodo ocupado en F2; Miércoles libre 5° y 6° periodo..." class="w-full text-base px-3.5 py-2 border border-slate-300 rounded-lg bg-white"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
+              <button type="button" @click="isProfileModalOpen = false" class="px-4 py-2 text-base font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+              <button type="submit" class="px-5 py-2 text-base font-black text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-xs">Guardar Cambios</button>
+            </div>
+          </form>
+        </div>
+      </div>
 
       <!-- MODAL FORMULARIO COMPLETO -->
       <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
@@ -1047,6 +1171,8 @@
         isModalOpen: false,
         isPrintModalOpen: false,
         isFreshMaterialModalOpen: false,
+        isProfileModalOpen: false,
+        isScheduleModalOpen: false,
         isLoading: false,
         selectedBooking: null,
         editingBookingId: null,
@@ -1062,6 +1188,14 @@
         printHeaderDate: '',
         activePrintBookings: [],
         activeFreshPrintBookings: [],
+
+        profileForm: {
+          name: '',
+          title: '',
+          newPassword: '',
+          scheduleImage: null,
+          scheduleNotes: ''
+        },
         
         labOptions: [
           { id: 26, name: 'Laboratorio 26' },
@@ -1109,6 +1243,8 @@
         },
 
         async initData() {
+          this.loadLocalProfiles();
+
           const savedUserId = localStorage.getItem('lancaster_user_id');
           if (savedUserId) {
             const user = this.usersList.find(u => u.id === savedUserId);
@@ -1124,6 +1260,36 @@
               this.fetchFromCloud(true);
             }
           }, 30000);
+        },
+
+        loadLocalProfiles() {
+          const storedProfiles = localStorage.getItem('lancaster_user_profiles');
+          if (storedProfiles) {
+            try {
+              const profiles = JSON.parse(storedProfiles);
+              this.usersList.forEach(u => {
+                if (profiles[u.id]) {
+                  Object.assign(u, profiles[u.id]);
+                }
+              });
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        },
+
+        saveLocalProfiles() {
+          const profiles = {};
+          this.usersList.forEach(u => {
+            profiles[u.id] = {
+              name: u.name,
+              title: u.title,
+              pass: u.pass,
+              scheduleImage: u.scheduleImage || null,
+              scheduleNotes: u.scheduleNotes || ''
+            };
+          });
+          localStorage.setItem('lancaster_user_profiles', JSON.stringify(profiles));
         },
 
         login() {
@@ -1144,6 +1310,55 @@
           this.selectedUserKey = '';
           this.inputPassword = '';
           localStorage.removeItem('lancaster_user_id');
+        },
+
+        openProfileModal() {
+          this.profileForm = {
+            name: this.currentUser.name,
+            title: this.currentUser.title,
+            newPassword: '',
+            scheduleImage: this.currentUser.scheduleImage || null,
+            scheduleNotes: this.currentUser.scheduleNotes || ''
+          };
+          this.isProfileModalOpen = true;
+        },
+
+        handleScheduleUpload(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          if (file.size > 2 * 1024 * 1024) {
+            Swal.fire('Imagen muy pesada', 'La imagen del horario debe pesar menos de 2MB.', 'warning');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.profileForm.scheduleImage = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        },
+
+        saveUserProfile() {
+          this.currentUser.name = this.profileForm.name;
+          this.currentUser.title = this.profileForm.title;
+          if (this.profileForm.newPassword.trim() !== '') {
+            this.currentUser.pass = this.profileForm.newPassword.trim();
+          }
+          this.currentUser.scheduleImage = this.profileForm.scheduleImage;
+          this.currentUser.scheduleNotes = this.profileForm.scheduleNotes;
+
+          this.saveLocalProfiles();
+          this.isProfileModalOpen = false;
+
+          Swal.fire({
+            icon: 'success',
+            title: '¡Perfil Actualizado!',
+            text: 'Tu información y horario se han guardado correctamente.',
+            confirmColor: '#c8102e'
+          });
+        },
+
+        openScheduleModal() {
+          this.isScheduleModalOpen = true;
         },
 
         canEditOrDelete(item) {
