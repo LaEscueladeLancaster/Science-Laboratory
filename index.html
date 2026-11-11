@@ -2501,13 +2501,13 @@ function appData() {
         pw: { current: '', next: '', confirm: '' },
 
         // Nueva nube JSONBin. La Access Key queda integrada en este archivo HTML.
-        // Sustituye el texto $2a$10$H5XXxjipvJl1./6ilPk8vuFUT6LNNx2L0Paw1L6UN.VdrSPoEBjmu por la clave real creada en JSONBin.
+        // Sustituye el texto 6af4abe5ac6210605a804d35 por la clave real creada en JSONBin.
         // Usa una Access Key limitada; nunca coloques aquí la Master Key.
         binId: '6af4a14aac6210605a803608',
-        accessKey: '$2a$10$H5XXxjipvJl1./6ilPk8vuFUT6LNNx2L0Paw1L6UN.VdrSPoEBjmu',
+        accessKey: '6af4abe5ac6210605a804d35',
         getAccessKey() {
           const key = String(this.accessKey || '').trim();
-          if (!key || key === '$2a$10$H5XXxjipvJl1./6ilPk8vuFUT6LNNx2L0Paw1L6UN.VdrSPoEBjmu') {
+          if (!key || key === '6af4abe5ac6210605a804d35') {
             throw new Error('Falta pegar la X-Access-Key de JSONBin en la configuración del archivo HTML.');
           }
           return key;
