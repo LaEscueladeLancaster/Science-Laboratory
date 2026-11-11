@@ -1040,7 +1040,7 @@
 
         <!-- BIBLIOTECA Y PRÉSTAMO DE LIBROS -->
         <section x-show="currentView === 'books'" class="space-y-4">
-          <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-lg font-black text-slate-900">Inventario de libros y préstamos a alumnos</h2><p class="text-sm text-slate-600">Busca al alumno por nombre o correo y registra los ejemplares que recibe.</p></div><div class="flex flex-wrap gap-2"><button x-show="['admin','superadmin'].includes(currentUser.role)" @click="publishBaseLibraryToCloud()" class="bg-emerald-700 text-white rounded-lg px-4 py-2 font-bold"><i class="ph ph-cloud-arrow-up"></i> Cargar catálogo inicial a la nube</button><button @click="addLibraryBook()" class="bg-brand-700 text-white rounded-lg px-4 py-2 font-bold"><i class="ph ph-plus"></i> Agregar libro</button></div></div>
+          <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-lg font-black text-slate-900">Inventario de libros y préstamos a alumnos</h2><p class="text-sm text-slate-600">Busca al alumno por nombre o correo y registra los ejemplares que recibe.</p></div><button @click="addLibraryBook()" class="bg-brand-700 text-white rounded-lg px-4 py-2 font-bold"><i class="ph ph-plus"></i> Agregar libro</button></div>
           <div class="grid lg:grid-cols-2 gap-4">
             <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3"><h3 class="font-black text-slate-800">Catálogo</h3><input x-model="bookSearch" placeholder="Buscar título, autor o ISBN" class="w-full border rounded-lg p-2"><div class="max-h-96 overflow-auto divide-y"><template x-for="book in filteredBooks" :key="book.id"><div class="py-2 flex justify-between gap-3"><div><div class="font-bold" x-text="book.title"></div><div class="text-xs text-slate-500" x-text="(book.author || 'Autor no registrado') + ' · ISBN ' + (book.isbn || '—') + ' · ' + (book.subject || 'Sin materia') + ' · ' + (book.location || 'Sin ubicación') + ' · ' + book.available + '/' + book.total + ' disponibles'"></div></div><div class="flex gap-1"><button @click="editLibraryBook(book)" class="text-sm px-2 py-1 rounded bg-slate-100 text-slate-700 font-bold">Editar</button><button @click="checkoutBook(book)" :disabled="book.available < 1" class="text-sm px-3 py-1 rounded bg-emerald-50 text-emerald-800 font-bold disabled:opacity-40">Prestar</button></div></div></template></div></div>
             <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3"><h3 class="font-black text-slate-800">Préstamos vigentes</h3><input x-model="bookLoanSearch" placeholder="Buscar alumno" class="w-full border rounded-lg p-2"><div class="max-h-96 overflow-auto divide-y"><template x-for="loan in filteredBookLoans" :key="loan.id"><div class="py-2 flex justify-between gap-3"><div><div class="font-bold" x-text="loan.bookTitle"></div><div class="text-xs text-slate-600" x-text="loan.studentName + ' · ' + loan.studentEmail"></div><div class="text-xs text-slate-500" x-text="'Préstamo: ' + formatDisplayDate(loan.date) + ' · Devolución: ' + (loan.dueDate ? formatDisplayDate(loan.dueDate) : 'Sin fecha')"></div></div><button @click="returnBook(loan)" class="text-sm px-3 py-1 rounded bg-slate-100 font-bold">Devolver</button></div></template><p x-show="filteredBookLoans.length === 0" class="text-sm text-slate-500 py-4">No hay préstamos coincidentes.</p></div></div>
@@ -2501,13 +2501,13 @@ function appData() {
         pw: { current: '', next: '', confirm: '' },
 
         // Nueva nube JSONBin. La Access Key queda integrada en este archivo HTML.
-        // Sustituye el texto 6af4abe5ac6210605a804d35 por la clave real creada en JSONBin.
+        // Sustituye el texto PEGAR_ACCESS_KEY_AQUI por la clave real creada en JSONBin.
         // Usa una Access Key limitada; nunca coloques aquí la Master Key.
         binId: '6af4a14aac6210605a803608',
-        accessKey: '6af4abe5ac6210605a804d35',
+        accessKey: '$2a$10$VLx8j.j5AGq8QYPtg9CE3OnHuLuTloXZpfFg4XyryjKmIwuv5v3TS',
         getAccessKey() {
           const key = String(this.accessKey || '').trim();
-          if (!key || key === '6af4abe5ac6210605a804d35') {
+          if (!key || key === 'PEGAR_ACCESS_KEY_AQUI') {
             throw new Error('Falta pegar la X-Access-Key de JSONBin en la configuración del archivo HTML.');
           }
           return key;
@@ -3124,51 +3124,6 @@ get filteredBooks() { const q=(this.bookSearch||'').toLowerCase(); return this.l
         get filteredBookLoans() { const q=(this.bookLoanSearch||'').toLowerCase(); return this.bookLoans.filter(l=>!l.returnedAt && (l.studentName+' '+l.studentEmail+' '+l.bookTitle).toLowerCase().includes(q)); },
         get teacherReportRows() { return this.bookings.filter(b=>!['cancelled','postponed'].includes(b.status) && (this.reportTeacher==='Todos'||b.teacher===this.reportTeacher) && (this.reportSubject==='Todas'||b.subject===this.reportSubject)).sort((a,b)=>a.date.localeCompare(b.date)); },
         get teacherReportStudents() { return this.teacherReportRows.reduce((n,b)=>n+(parseInt(b.studentsCount)||0),0); },
-        async publishBaseLibraryToCloud() {
-          if (!['admin','superadmin'].includes(this.currentUser?.role)) return;
-          const answer = await Swal.fire({
-            title: 'Publicar catálogo inicial',
-            html: `Se agregarán los <b>${INITIAL_LIBRARY_BOOKS.length} libros</b> del inventario original que todavía no estén en la nube. Los registros existentes, préstamos, prácticas y solicitudes se conservarán.`,
-            icon: 'question', showCancelButton: true, confirmButtonText: 'Cargar libros a la nube', cancelButtonText: 'Cancelar'
-          });
-          if (!answer.isConfirmed) return;
-          this.isLoading = true;
-          try {
-            const headers = { 'X-Access-Key': this.getAccessKey() };
-            const get = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}/latest`, { method: 'GET', headers });
-            if (!get.ok) throw new Error('No se pudo leer la nube (' + get.status + ').');
-            const latest = await get.json();
-            const record = latest.record && typeof latest.record === 'object' && !Array.isArray(latest.record) ? latest.record : {};
-            const cloudBooks = Array.isArray(record.libraryBooks) ? record.libraryBooks : [];
-            const keyOf = b => (String(b.title || '').trim().toLowerCase() + '|' + String(b.isbn || '').trim().toLowerCase());
-            const existing = new Set(cloudBooks.map(keyOf));
-            const missing = INITIAL_LIBRARY_BOOKS.filter(b => !existing.has(keyOf(b)));
-            const additions = missing.map(b => ({ ...b, id: 'catalog-2026-' + (String(b.isbn || '').replace(/[^a-z0-9]/gi,'') || encodeURIComponent(b.title).slice(0,40)), source: 'Inventario interno de libros.xlsx' }));
-            const mergedBooks = cloudBooks.concat(additions);
-            const updatedRecord = { ...record, libraryBooks: mergedBooks, librarySeedVersion: 1 };
-            const put = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}`, {
-              method: 'PUT',
-              headers: { ...headers, 'Content-Type': 'application/json' },
-              body: JSON.stringify(updatedRecord)
-            });
-            if (!put.ok) throw new Error('No se pudo guardar el catálogo (' + put.status + ').');
-            const verify = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}/latest`, { method: 'GET', headers });
-            if (!verify.ok) throw new Error('El catálogo se envió, pero no se pudo verificar la lectura (' + verify.status + ').');
-            const checked = await verify.json();
-            const verifiedBooks = Array.isArray(checked.record?.libraryBooks) ? checked.record.libraryBooks : [];
-            const verifiedKeys = new Set(verifiedBooks.map(keyOf));
-            const verifiedCount = INITIAL_LIBRARY_BOOKS.filter(b => verifiedKeys.has(keyOf(b))).length;
-            if (verifiedCount !== INITIAL_LIBRARY_BOOKS.length) throw new Error(`Verificación incompleta: se encontraron ${verifiedCount} de ${INITIAL_LIBRARY_BOOKS.length} libros del catálogo base.`);
-            this.libraryBooks = verifiedBooks;
-            this.bookLoans = Array.isArray(checked.record.bookLoans) ? checked.record.bookLoans : this.bookLoans;
-            this.librarySeedVersion = 1;
-            this._lastCloudSyncAt = Date.now();
-            Swal.fire({ icon: 'success', title: 'Catálogo publicado y verificado', text: `${additions.length} libros nuevos agregados. ${cloudBooks.length} registros anteriores conservados. Total en la nube: ${verifiedBooks.length}.` });
-          } catch (e) {
-            console.error('Error al publicar catálogo inicial:', e);
-            Swal.fire({ icon: 'error', title: 'No se pudo completar la carga', text: e.message || 'Revisa la conexión y la Access Key de JSONBin. No se confirmó la publicación.' });
-          } finally { this.isLoading = false; }
-        },
         async addLibraryBook() { const r=await Swal.fire({title:'Agregar libro',html:'<input id="bk-title" class="swal2-input" placeholder="Título"><input id="bk-author" class="swal2-input" placeholder="Autor"><input id="bk-isbn" class="swal2-input" placeholder="ISBN"><input id="bk-total" type="number" min="1" value="1" class="swal2-input" placeholder="Ejemplares">',showCancelButton:true,focusConfirm:false,preConfirm:()=>({title:document.getElementById('bk-title').value.trim(),author:document.getElementById('bk-author').value.trim(),isbn:document.getElementById('bk-isbn').value.trim(),total:Math.max(1,parseInt(document.getElementById('bk-total').value)||1)})}); if(!r.isConfirmed||!r.value.title)return; this.libraryBooks.push({id:Date.now(),...r.value,available:r.value.total}); await this.saveToCloud(); },
         async editLibraryBook(book) { const r=await Swal.fire({title:'Editar libro',html:'<input id="bk-title-edit" class="swal2-input" placeholder="Título" value="'+this.esc(book.title)+'"><input id="bk-author-edit" class="swal2-input" placeholder="Autor" value="'+this.esc(book.author||'')+'"><input id="bk-total-edit" type="number" min="1" class="swal2-input" value="'+book.total+'">',showCancelButton:true,preConfirm:()=>({title:document.getElementById('bk-title-edit').value.trim(),author:document.getElementById('bk-author-edit').value.trim(),total:Math.max(book.total-book.available,parseInt(document.getElementById('bk-total-edit').value)||1)})}); if(!r.isConfirmed||!r.value.title)return; const used=book.total-book.available; Object.assign(book,r.value,{available:Math.max(0,r.value.total-used)}); await this.saveToCloud(); },
         async checkoutBook(book) { const r=await Swal.fire({title:'Prestar: '+this.esc(book.title),html:'<input id="loan-student" class="swal2-input" placeholder="Nombre o correo del alumno"><input id="loan-due" type="date" class="swal2-input">',showCancelButton:true,confirmButtonText:'Registrar préstamo',preConfirm:()=>({student:document.getElementById('loan-student').value.trim(),due:document.getElementById('loan-due').value})}); if(!r.isConfirmed||!r.value.student)return; const q=r.value.student.toLowerCase(); const st=this.students.find(x=>x.name.toLowerCase()===q||x.email.toLowerCase()===q||x.name.toLowerCase().includes(q)||x.email.toLowerCase().includes(q)); if(!st){Swal.fire('Alumno no encontrado','Busca por nombre o correo institucional registrado.','warning');return;} if(book.available<1)return; book.available--; this.bookLoans.push({id:Date.now(),bookId:book.id,bookTitle:book.title,studentName:st.name,studentEmail:st.email,date:localDateISO(),dueDate:r.value.due,returnedAt:null}); await this.saveToCloud(); Swal.fire('Préstamo registrado',st.name,'success'); },
