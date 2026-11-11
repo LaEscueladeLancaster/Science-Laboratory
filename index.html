@@ -481,7 +481,7 @@
                           </template>
                           <template x-if="period === 1">
                             <div class="space-y-2">
-                              <template x-for="st in stationery.filter(x => x.date === day.dateStr)" :key="'week-st-' + st.id">
+                              <template x-for="st in stationery.filter(x => this.stationeryDates(x).includes(day.dateStr))" :key="'week-st-' + st.id">
                                 <button type="button" @click.stop="currentView = 'stationery'; stFilter = 'Todas'" class="w-full p-3 rounded-lg border text-left transition shadow-xs bg-purple-50 border-purple-300 text-purple-950 hover:bg-purple-100">
                                   <div class="flex items-center justify-between gap-2">
                                     <span class="text-xs font-black uppercase tracking-wide">📎 Solicitud de papelería</span>
@@ -733,7 +733,12 @@
                 <div class="p-4 border-b border-slate-100 last:border-b-0 flex flex-wrap gap-3 justify-between">
                   <div class="flex-1 min-w-[240px] space-y-1">
                     <div class="font-extrabold text-slate-900" x-text="r.purpose"></div>
-                    <div x-show="stSpaceLabel(r)" class="inline-flex items-center gap-1 text-sm font-black text-brand-800 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded"><i class="ph ph-map-pin"></i><span x-text="stSpaceLabel(r)"></span></div>
+                    <div class="space-y-1" x-show="stationerySessionFor(r, g.date)">
+                      <div class="inline-flex flex-wrap items-center gap-2 text-sm font-black text-brand-800 bg-brand-50 border border-brand-200 px-2 py-1 rounded">
+                        <span><i class="ph ph-map-pin"></i> <span x-text="stSpaceLabel(stationerySessionFor(r, g.date))"></span></span>
+                        <span class="text-purple-800" x-text="'Periodo ' + (stationerySessionFor(r, g.date).period || r.period || '—')"></span>
+                      </div>
+                    </div>
                     <div class="text-sm font-semibold text-slate-600" x-text="r.requester + (r.grade ? ' · ' + r.grade : '')"></div>
                     <ul class="list-disc pl-5 text-base text-slate-800">
                       <template x-for="(it, ii) in r.items" :key="ii"><li x-text="it.name + (it.quantity ? ' — ' + it.quantity : '')"></li></template>
@@ -984,7 +989,7 @@
                 <template x-for="b in c.items.slice(0,3)" :key="b.id">
                   <div class="mt-1 text-xs font-bold truncate px-1.5 py-0.5 rounded border" :class="getSubjectBadgeStyle(b.subject)" x-text="'P' + b.startPeriod + ' ' + (b.practiceName || b.subject)"></div>
                 </template>
-                <template x-for="st in stationery.filter(x => x.date === c.dateStr)" :key="'st'+st.id">
+                <template x-for="st in stationery.filter(x => this.stationeryDates(x).includes(c.dateStr))" :key="'st'+st.id">
                   <button type="button" @click.stop="currentView = 'stationery'; stFilter = 'Todas'" class="mt-1 w-full text-left text-xs font-bold px-1.5 py-1 rounded border bg-purple-50 text-purple-900 border-purple-300 hover:bg-purple-100" title="Abrir solicitud de papelería">
                     <span>📎 Papelería · </span><span x-text="st.purpose || 'Solicitud de material'"></span>
                     <span class="block font-semibold" x-text="(st.requester || '') + (st.status === 'Entregada' ? ' · Entregada' : ' · Pendiente')"></span>
@@ -1035,7 +1040,7 @@
 
         <!-- BIBLIOTECA Y PRÉSTAMO DE LIBROS -->
         <section x-show="currentView === 'books'" class="space-y-4">
-          <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-lg font-black text-slate-900">Inventario de libros y préstamos a alumnos</h2><p class="text-sm text-slate-600">Busca al alumno por nombre o correo y registra los ejemplares que recibe.</p></div><button @click="addLibraryBook()" class="bg-brand-700 text-white rounded-lg px-4 py-2 font-bold"><i class="ph ph-plus"></i> Agregar libro</button></div>
+          <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-lg font-black text-slate-900">Inventario de libros y préstamos a alumnos</h2><p class="text-sm text-slate-600">Busca al alumno por nombre o correo y registra los ejemplares que recibe.</p></div><div class="flex flex-wrap gap-2"><button x-show="['admin','superadmin'].includes(currentUser.role)" @click="publishBaseLibraryToCloud()" class="bg-emerald-700 text-white rounded-lg px-4 py-2 font-bold"><i class="ph ph-cloud-arrow-up"></i> Cargar catálogo inicial a la nube</button><button @click="addLibraryBook()" class="bg-brand-700 text-white rounded-lg px-4 py-2 font-bold"><i class="ph ph-plus"></i> Agregar libro</button></div></div>
           <div class="grid lg:grid-cols-2 gap-4">
             <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3"><h3 class="font-black text-slate-800">Catálogo</h3><input x-model="bookSearch" placeholder="Buscar título, autor o ISBN" class="w-full border rounded-lg p-2"><div class="max-h-96 overflow-auto divide-y"><template x-for="book in filteredBooks" :key="book.id"><div class="py-2 flex justify-between gap-3"><div><div class="font-bold" x-text="book.title"></div><div class="text-xs text-slate-500" x-text="(book.author || 'Autor no registrado') + ' · ISBN ' + (book.isbn || '—') + ' · ' + (book.subject || 'Sin materia') + ' · ' + (book.location || 'Sin ubicación') + ' · ' + book.available + '/' + book.total + ' disponibles'"></div></div><div class="flex gap-1"><button @click="editLibraryBook(book)" class="text-sm px-2 py-1 rounded bg-slate-100 text-slate-700 font-bold">Editar</button><button @click="checkoutBook(book)" :disabled="book.available < 1" class="text-sm px-3 py-1 rounded bg-emerald-50 text-emerald-800 font-bold disabled:opacity-40">Prestar</button></div></div></template></div></div>
             <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3"><h3 class="font-black text-slate-800">Préstamos vigentes</h3><input x-model="bookLoanSearch" placeholder="Buscar alumno" class="w-full border rounded-lg p-2"><div class="max-h-96 overflow-auto divide-y"><template x-for="loan in filteredBookLoans" :key="loan.id"><div class="py-2 flex justify-between gap-3"><div><div class="font-bold" x-text="loan.bookTitle"></div><div class="text-xs text-slate-600" x-text="loan.studentName + ' · ' + loan.studentEmail"></div><div class="text-xs text-slate-500" x-text="'Préstamo: ' + formatDisplayDate(loan.date) + ' · Devolución: ' + (loan.dueDate ? formatDisplayDate(loan.dueDate) : 'Sin fecha')"></div></div><button @click="returnBook(loan)" class="text-sm px-3 py-1 rounded bg-slate-100 font-bold">Devolver</button></div></template><p x-show="filteredBookLoans.length === 0" class="text-sm text-slate-500 py-4">No hay préstamos coincidentes.</p></div></div>
@@ -1491,31 +1496,31 @@
               <label class="block text-base font-bold text-slate-700 mb-1">¿Para qué lo necesitas? *</label>
               <input type="text" x-model="stForm.purpose" required placeholder="Ej. Maqueta de la célula, cartel de ecosistemas..." class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600">
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div :class="stForm.space === 'Salón de clases' ? '' : 'sm:col-span-2'">
-                <label class="block text-base font-bold text-slate-700 mb-1">Salón o laboratorio donde se necesita *</label>
-                <select x-model="stForm.space" required class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-600">
-                  <option value="">Selecciona un espacio…</option>
-                  <template x-for="lab in labOptions" :key="lab.id"><option :value="lab.name" x-text="lab.name"></option></template>
-                </select>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <label class="block text-base font-black text-slate-800">Fechas, periodos y lugares *</label>
+                  <p class="text-xs text-slate-500">Agrega una fila por cada fecha, igual que al agendar prácticas. Cada fecha puede tener un periodo y lugar diferente.</p>
+                </div>
+                <button type="button" @click="addStationerySession()" class="px-3 py-2 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-700"><i class="ph ph-plus-bold"></i> Agregar fecha</button>
               </div>
-              <div x-show="stForm.space === 'Salón de clases'">
-                <label class="block text-base font-bold text-slate-700 mb-1">Número o nombre del salón *</label>
-                <input type="text" x-model="stForm.classroom" :required="stForm.space === 'Salón de clases'" placeholder="Ej. Salón 12, 2°A" class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600">
-              </div>
+              <template x-for="(ss, i) in stForm.sessions" :key="i">
+                <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+                  <div class="flex items-center justify-between gap-2"><span class="text-xs font-black uppercase tracking-wide text-slate-500" x-text="'Actividad ' + (i + 1)"></span>
+                    <button type="button" x-show="stForm.sessions.length > 1" @click="stForm.sessions.splice(i,1)" class="text-rose-500 hover:text-rose-700 p-1"><i class="ph ph-trash text-xl"></i></button>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Fecha *</label><input type="date" x-model="ss.date" :min="localStr(new Date())" required class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Periodo *</label><select x-model="ss.period" required class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg bg-white"><option value="">Selecciona…</option><template x-for="p in [1,2,3,4,5,6,7]" :key="p"><option :value="String(p)" x-text="'Periodo ' + p"></option></template></select></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Lugar *</label><select x-model="ss.space" required class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg bg-white"><option value="">Selecciona un espacio…</option><template x-for="lab in labOptions" :key="lab.id"><option :value="lab.name" x-text="lab.name"></option></template></select></div>
+                    <div x-show="ss.space === 'Salón de clases'"><label class="block text-xs font-bold text-slate-600 mb-1">Número o nombre del salón *</label><input type="text" x-model="ss.classroom" :required="ss.space === 'Salón de clases'" placeholder="Ej. Salón 12, 2°A" class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg"></div>
+                  </div>
+                </div>
+              </template>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-base font-bold text-slate-700 mb-1">Fecha en que lo necesitas *</label>
-                <input type="date" x-model="stForm.date" required :min="localStr(new Date())" class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg">
-              </div>
-              <div>
-                <label class="block text-base font-bold text-slate-700 mb-1">Forma / Grado <span class="text-slate-400 font-normal">(opcional)</span></label>
-                <select x-model="stForm.grade" class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg bg-white">
-                  <option value="">—</option>
-                  <template x-for="g in ['F1','F2','F3','F4','F5','L6','U6']" :key="g"><option :value="g" x-text="g"></option></template>
-                </select>
-              </div>
+            <div>
+              <label class="block text-base font-bold text-slate-700 mb-1">Forma / Grado <span class="text-slate-400 font-normal">(opcional)</span></label>
+              <select x-model="stForm.grade" class="w-full text-base font-semibold px-3 py-2 border border-slate-300 rounded-lg bg-white"><option value="">—</option><template x-for="g in ['F1','F2','F3','F4','F5','L6','U6']" :key="g"><option :value="g" x-text="g"></option></template></select>
             </div>
             <div class="space-y-2">
               <div class="flex justify-between items-center">
@@ -2463,7 +2468,7 @@ function appData() {
         isStationeryOpen: false,
         editingStId: null,
         stFilter: 'Pendiente',
-        stForm: { date: '', purpose: '', grade: '', space: '', classroom: '', notes: '', items: [{ name: '', quantity: '' }] },
+        stForm: { sessions: [{ date: '', period: '', space: '', classroom: '' }], purpose: '', grade: '', notes: '', items: [{ name: '', quantity: '' }] },
         stQuick: ['Reglas', 'Caja de colores', 'Material para maquetas', 'Cartulina', 'Plumones', 'Tijeras', 'Pegamento', 'Cinta adhesiva', 'Hojas de colores', 'Marcadores'],
         appVersion: '10-nov-2026 · soluciones: gramos calculados desde concentración y volumen',
         resetUserId: '',
@@ -2599,8 +2604,8 @@ function appData() {
             }
           }
 
-          // Sincronización optimizada: cada 30 minutos y solo con la pestaña visible.
-          // Al volver a la pestaña se actualizan los datos compartidos.
+          // Consulta de cambios de otros usuarios cada 30 minutos.
+          // Los registros propios se envían a JSONBin al ejecutar cada operación de guardado; este intervalo NO es el guardado.
           this._lastCloudSyncAt = Date.now();
           this._cloudSyncTimer = setInterval(() => {
             if (this.currentUser && document.visibilityState === 'visible') {
@@ -2761,7 +2766,11 @@ function appData() {
                 this.interLoans = rec.interLoans || []; this.scheduleFiles = rec.scheduleFiles || {}; this.inactiveUsers = rec.inactiveUsers || [];
                 let seedDataImported = false;
                 this.librarySeedVersion = Number(rec.librarySeedVersion || 0);
-                if (this.librarySeedVersion < 1) {
+                // Recuperación segura del catálogo: algunas versiones de la nube pueden
+                // conservar librarySeedVersion=1 aunque libraryBooks llegue vacío.
+                // En ese caso se vuelve a cargar el catálogo base sin tocar préstamos ni
+                // libros existentes; se evita que la marca de versión oculte el inventario.
+                if (this.librarySeedVersion < 1 || this.libraryBooks.length === 0) {
                   const bookKey = b => (String(b.title || '').trim().toLowerCase() + '|' + String(b.isbn || '').trim().toLowerCase());
                   const existing = new Set(this.libraryBooks.map(bookKey));
                   const imported = INITIAL_LIBRARY_BOOKS.filter(b => !existing.has(bookKey(b)))
@@ -2817,7 +2826,8 @@ function appData() {
               },
               body: JSON.stringify({ bookings: this.bookings, invDelta: this.makeInvDelta(), profiles: this.profiles, stationery: this.stationery, vales: this.vales, students: this.students, extraUsers: this.extraUsers, libraryBooks: this.libraryBooks, librarySeedVersion: this.librarySeedVersion || 1, scheduleSeedVersion: this.scheduleSeedVersion || 4, bookLoans: this.bookLoans, interLoans: this.interLoans, scheduleFiles: this.scheduleFiles, inactiveUsers: this.inactiveUsers || [] })
             });
-            if (!res.ok) throw new Error('Error al guardar');
+            if (!res.ok) throw new Error('Error al guardar (' + res.status + ')');
+            this._lastCloudSaveAt = Date.now();
             return true;
           } catch (e) {
             console.error(e);
@@ -3114,6 +3124,51 @@ get filteredBooks() { const q=(this.bookSearch||'').toLowerCase(); return this.l
         get filteredBookLoans() { const q=(this.bookLoanSearch||'').toLowerCase(); return this.bookLoans.filter(l=>!l.returnedAt && (l.studentName+' '+l.studentEmail+' '+l.bookTitle).toLowerCase().includes(q)); },
         get teacherReportRows() { return this.bookings.filter(b=>!['cancelled','postponed'].includes(b.status) && (this.reportTeacher==='Todos'||b.teacher===this.reportTeacher) && (this.reportSubject==='Todas'||b.subject===this.reportSubject)).sort((a,b)=>a.date.localeCompare(b.date)); },
         get teacherReportStudents() { return this.teacherReportRows.reduce((n,b)=>n+(parseInt(b.studentsCount)||0),0); },
+        async publishBaseLibraryToCloud() {
+          if (!['admin','superadmin'].includes(this.currentUser?.role)) return;
+          const answer = await Swal.fire({
+            title: 'Publicar catálogo inicial',
+            html: `Se agregarán los <b>${INITIAL_LIBRARY_BOOKS.length} libros</b> del inventario original que todavía no estén en la nube. Los registros existentes, préstamos, prácticas y solicitudes se conservarán.`,
+            icon: 'question', showCancelButton: true, confirmButtonText: 'Cargar libros a la nube', cancelButtonText: 'Cancelar'
+          });
+          if (!answer.isConfirmed) return;
+          this.isLoading = true;
+          try {
+            const headers = { 'X-Access-Key': this.getAccessKey() };
+            const get = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}/latest`, { method: 'GET', headers });
+            if (!get.ok) throw new Error('No se pudo leer la nube (' + get.status + ').');
+            const latest = await get.json();
+            const record = latest.record && typeof latest.record === 'object' && !Array.isArray(latest.record) ? latest.record : {};
+            const cloudBooks = Array.isArray(record.libraryBooks) ? record.libraryBooks : [];
+            const keyOf = b => (String(b.title || '').trim().toLowerCase() + '|' + String(b.isbn || '').trim().toLowerCase());
+            const existing = new Set(cloudBooks.map(keyOf));
+            const missing = INITIAL_LIBRARY_BOOKS.filter(b => !existing.has(keyOf(b)));
+            const additions = missing.map(b => ({ ...b, id: 'catalog-2026-' + (String(b.isbn || '').replace(/[^a-z0-9]/gi,'') || encodeURIComponent(b.title).slice(0,40)), source: 'Inventario interno de libros.xlsx' }));
+            const mergedBooks = cloudBooks.concat(additions);
+            const updatedRecord = { ...record, libraryBooks: mergedBooks, librarySeedVersion: 1 };
+            const put = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}`, {
+              method: 'PUT',
+              headers: { ...headers, 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatedRecord)
+            });
+            if (!put.ok) throw new Error('No se pudo guardar el catálogo (' + put.status + ').');
+            const verify = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}/latest`, { method: 'GET', headers });
+            if (!verify.ok) throw new Error('El catálogo se envió, pero no se pudo verificar la lectura (' + verify.status + ').');
+            const checked = await verify.json();
+            const verifiedBooks = Array.isArray(checked.record?.libraryBooks) ? checked.record.libraryBooks : [];
+            const verifiedKeys = new Set(verifiedBooks.map(keyOf));
+            const verifiedCount = INITIAL_LIBRARY_BOOKS.filter(b => verifiedKeys.has(keyOf(b))).length;
+            if (verifiedCount !== INITIAL_LIBRARY_BOOKS.length) throw new Error(`Verificación incompleta: se encontraron ${verifiedCount} de ${INITIAL_LIBRARY_BOOKS.length} libros del catálogo base.`);
+            this.libraryBooks = verifiedBooks;
+            this.bookLoans = Array.isArray(checked.record.bookLoans) ? checked.record.bookLoans : this.bookLoans;
+            this.librarySeedVersion = 1;
+            this._lastCloudSyncAt = Date.now();
+            Swal.fire({ icon: 'success', title: 'Catálogo publicado y verificado', text: `${additions.length} libros nuevos agregados. ${cloudBooks.length} registros anteriores conservados. Total en la nube: ${verifiedBooks.length}.` });
+          } catch (e) {
+            console.error('Error al publicar catálogo inicial:', e);
+            Swal.fire({ icon: 'error', title: 'No se pudo completar la carga', text: e.message || 'Revisa la conexión y la Access Key de JSONBin. No se confirmó la publicación.' });
+          } finally { this.isLoading = false; }
+        },
         async addLibraryBook() { const r=await Swal.fire({title:'Agregar libro',html:'<input id="bk-title" class="swal2-input" placeholder="Título"><input id="bk-author" class="swal2-input" placeholder="Autor"><input id="bk-isbn" class="swal2-input" placeholder="ISBN"><input id="bk-total" type="number" min="1" value="1" class="swal2-input" placeholder="Ejemplares">',showCancelButton:true,focusConfirm:false,preConfirm:()=>({title:document.getElementById('bk-title').value.trim(),author:document.getElementById('bk-author').value.trim(),isbn:document.getElementById('bk-isbn').value.trim(),total:Math.max(1,parseInt(document.getElementById('bk-total').value)||1)})}); if(!r.isConfirmed||!r.value.title)return; this.libraryBooks.push({id:Date.now(),...r.value,available:r.value.total}); await this.saveToCloud(); },
         async editLibraryBook(book) { const r=await Swal.fire({title:'Editar libro',html:'<input id="bk-title-edit" class="swal2-input" placeholder="Título" value="'+this.esc(book.title)+'"><input id="bk-author-edit" class="swal2-input" placeholder="Autor" value="'+this.esc(book.author||'')+'"><input id="bk-total-edit" type="number" min="1" class="swal2-input" value="'+book.total+'">',showCancelButton:true,preConfirm:()=>({title:document.getElementById('bk-title-edit').value.trim(),author:document.getElementById('bk-author-edit').value.trim(),total:Math.max(book.total-book.available,parseInt(document.getElementById('bk-total-edit').value)||1)})}); if(!r.isConfirmed||!r.value.title)return; const used=book.total-book.available; Object.assign(book,r.value,{available:Math.max(0,r.value.total-used)}); await this.saveToCloud(); },
         async checkoutBook(book) { const r=await Swal.fire({title:'Prestar: '+this.esc(book.title),html:'<input id="loan-student" class="swal2-input" placeholder="Nombre o correo del alumno"><input id="loan-due" type="date" class="swal2-input">',showCancelButton:true,confirmButtonText:'Registrar préstamo',preConfirm:()=>({student:document.getElementById('loan-student').value.trim(),due:document.getElementById('loan-due').value})}); if(!r.isConfirmed||!r.value.student)return; const q=r.value.student.toLowerCase(); const st=this.students.find(x=>x.name.toLowerCase()===q||x.email.toLowerCase()===q||x.name.toLowerCase().includes(q)||x.email.toLowerCase().includes(q)); if(!st){Swal.fire('Alumno no encontrado','Busca por nombre o correo institucional registrado.','warning');return;} if(book.available<1)return; book.available--; this.bookLoans.push({id:Date.now(),bookId:book.id,bookTitle:book.title,studentName:st.name,studentEmail:st.email,date:localDateISO(),dueDate:r.value.due,returnedAt:null}); await this.saveToCloud(); Swal.fire('Préstamo registrado',st.name,'success'); },
@@ -3411,7 +3466,7 @@ get pendingStationery() { return this.stationery.filter(r => r.status !== 'Entre
           const me = this.currentUser, admin = me && me.role === 'admin';
           const list = this.stationery.filter(r => (admin || this.norm(r.requester) === this.norm(me.name)) && (this.stFilter === 'Todas' || (this.stFilter === 'Entregada') === (r.status === 'Entregada')));
           const by = {};
-          list.forEach(r => (by[r.date] = by[r.date] || []).push(r));
+          list.forEach(r => this.stationeryDates(r).forEach(d => (by[d] = by[d] || []).push({ ...r, date: d })));
           const dates = Object.keys(by).sort();
           if (this.stFilter === 'Entregada') dates.reverse();
           return dates.map(d => ({ date: d, items: by[d].sort((a, b) => a.id - b.id) }));
@@ -3421,7 +3476,7 @@ get pendingStationery() { return this.stationery.filter(r => r.status !== 'Entre
           if (!this.currentUser || this.currentUser.role !== 'admin') return [];
           const base = new Date(this.nowTick || Date.now());
           const days = [0, 1, 2].map(n => { const d = new Date(base); d.setDate(d.getDate() + n); return this.localStr(d); });
-          return this.stationery.filter(r => r.status !== 'Entregada' && days.includes(r.date)).sort((a, b) => a.date.localeCompare(b.date));
+          return this.stationery.filter(r => r.status !== 'Entregada' && this.stationeryDates(r).some(d => days.includes(d))).sort((a, b) => this.stationeryDates(a).slice().sort()[0].localeCompare(this.stationeryDates(b).slice().sort()[0]));
         },
 
         canEditStationery(r) {
@@ -3432,8 +3487,10 @@ get pendingStationery() { return this.stationery.filter(r => r.status !== 'Entre
 
         openStationery(r) {
           this.editingStId = r ? r.id : null;
-          this.stForm = r ? JSON.parse(JSON.stringify({ date: r.date, purpose: r.purpose, grade: r.grade || '', space: r.space || '', classroom: r.classroom || '', notes: r.notes || '', items: r.items }))
-                          : { date: '', purpose: '', grade: '', space: '', classroom: '', notes: '', items: [{ name: '', quantity: '' }] };
+          const legacyDates = r ? this.stationeryDates(r) : [];
+          const sessions = r ? (Array.isArray(r.sessions) && r.sessions.length ? r.sessions.map(x => ({ date: x.date || '', period: String(x.period || r.period || ''), space: x.space || r.space || '', classroom: x.classroom || r.classroom || '' })) : legacyDates.map(date => ({ date, period: String(r.period || ''), space: r.space || '', classroom: r.classroom || '' }))) : [{ date: '', period: '', space: '', classroom: '' }];
+          this.stForm = r ? JSON.parse(JSON.stringify({ sessions, purpose: r.purpose, grade: r.grade || '', notes: r.notes || '', items: r.items || [{ name: '', quantity: '' }] }))
+                          : { sessions, purpose: '', grade: '', notes: '', items: [{ name: '', quantity: '' }] };
           this.isStationeryOpen = true;
         },
 
@@ -3537,6 +3594,21 @@ get pendingStationery() { return this.stationery.filter(r => r.status !== 'Entre
           await this.saveToCloud();
         },
 
+        stationeryDates(r) {
+          const dates = Array.isArray(r && r.dates) && r.dates.length ? r.dates : (r && r.date ? [r.date] : []);
+          return [...new Set(dates.filter(Boolean))].sort();
+        },
+
+        addStationerySession() {
+          const last = (this.stForm.sessions || []).slice(-1)[0] || {};
+          this.stForm.sessions.push({ date: '', period: last.period || '', space: last.space || '', classroom: last.classroom || '' });
+        },
+
+        stationerySessionFor(r, date) {
+          if (r && Array.isArray(r.sessions)) return r.sessions.find(x => x.date === date) || null;
+          return r && this.stationeryDates(r).includes(date) ? { date, period: r.period || '', space: r.space || '', classroom: r.classroom || '' } : null;
+        },
+
         stSpaceLabel(r) {
           if (!r || !r.space) return '';
           return r.space === 'Salón de clases' ? (r.classroom || 'Salón de clases') : r.space;
@@ -3551,16 +3623,23 @@ get pendingStationery() { return this.stationery.filter(r => r.status !== 'Entre
           const items = this.stForm.items.filter(i => i.name.trim()).map(i => ({ name: i.name.trim(), quantity: String(i.quantity || '').trim() }));
           if (!items.length) { Swal.fire('Falta el material', 'Agrega al menos un artículo.', 'warning'); return; }
           const f = this.stForm;
-          if (!f.space) { Swal.fire('Falta el espacio', 'Indica el salón o laboratorio donde se necesita el material.', 'warning'); return; }
-          if (f.space === 'Salón de clases' && !(f.classroom || '').trim()) { Swal.fire('Falta el salón', 'Indica el número o nombre del salón.', 'warning'); return; }
-          const classroom = f.space === 'Salón de clases' ? f.classroom.trim() : '';
+          const sessions = (f.sessions || []).filter(x => x.date).map(x => ({ date: x.date, period: String(x.period || ''), space: x.space || '', classroom: x.space === 'Salón de clases' ? String(x.classroom || '').trim() : '' }));
+          if (!sessions.length) { Swal.fire('Faltan las fechas', 'Agrega al menos una fila con fecha, periodo y lugar.', 'warning'); return; }
+          if (sessions.some(x => x.date < this.localStr(new Date()))) { Swal.fire('Fecha no válida', 'Todas las fechas deben ser hoy o futuras.', 'warning'); return; }
+          if (sessions.some(x => !x.period || !x.space)) { Swal.fire('Datos incompletos', 'Cada fecha debe tener su propio periodo y lugar.', 'warning'); return; }
+          if (sessions.some(x => x.space === 'Salón de clases' && !x.classroom)) { Swal.fire('Falta el salón', 'Indica el número o nombre del salón en cada fila que corresponda.', 'warning'); return; }
+          const seen = new Set();
+          for (const x of sessions) { const k = x.date + '|' + x.period; if (seen.has(k)) { Swal.fire('Fecha y periodo repetidos', 'No repitas la misma combinación de fecha y periodo.', 'warning'); return; } seen.add(k); }
+          const dates = [...new Set(sessions.map(x => x.date))].sort();
+          const first = sessions[0];
           if (this.editingStId) {
             const r = this.stationery.find(x => x.id === this.editingStId);
-            if (r) Object.assign(r, { date: f.date, purpose: f.purpose.trim(), grade: f.grade, space: f.space, classroom, notes: f.notes.trim(), items });
+            if (r) Object.assign(r, { date: dates[0], dates, sessions, period: first.period, purpose: f.purpose.trim(), grade: f.grade, space: first.space, classroom: first.classroom, notes: f.notes.trim(), items });
           } else {
-            this.stationery.push({ id: Date.now(), createdAt: Date.now(), requester: this.currentUser.name, role: this.currentUser.role, date: f.date, purpose: f.purpose.trim(), grade: f.grade, space: f.space, classroom, notes: f.notes.trim(), items, status: 'Pendiente' });
+            this.stationery.push({ id: Date.now(), createdAt: Date.now(), requester: this.currentUser.name, role: this.currentUser.role, date: dates[0], dates, sessions, period: first.period, purpose: f.purpose.trim(), grade: f.grade, space: first.space, classroom: first.classroom, notes: f.notes.trim(), items, status: 'Pendiente' });
           }
-          await this.saveToCloud();
+          const saved = await this.saveToCloud();
+          if (!saved) return;
           const wasEdit = !!this.editingStId;
           this.isStationeryOpen = false; this.editingStId = null;
           this.currentView = 'stationery'; this.stFilter = 'Pendiente';
@@ -3892,7 +3971,7 @@ get pendingBoard() {
             unassigned: up.filter(b => !b.labTech),
             prepToday: up.filter(b => b.date === today && !this.prepComplete(b)),
             fresh: up.filter(b => b.needsFreshMaterial && b.date <= plus(7)),
-            stationery: this.stationery.filter(r => r.status !== 'Entregada' && r.date <= plus(3)).sort((a, b) => a.date.localeCompare(b.date)),
+            stationery: this.stationery.filter(r => r.status !== 'Entregada' && this.stationeryDates(r).some(d => d <= plus(3))).sort((a, b) => this.stationeryDates(a).slice().sort()[0].localeCompare(this.stationeryDates(b).slice().sort()[0])),
             valesSoon: this.vales.filter(v => v.status === 'Solicitado' && v.date <= plus(1)).sort((a, b) => a.date.localeCompare(b.date)),
             valesLate: this.vales.filter(v => this.valeOverdue(v)),
             low: this.inventory.filter(i => this.isLowStock(i)).sort((a, b) => a.stock - b.stock)
