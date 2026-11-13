@@ -5022,6 +5022,16 @@ cfgApplyPreset(c, p) {
           return ['admin', 'superadmin'].includes(role);
         },
 
+        // Visibilidad de agenda: los profesores consultan todas las prácticas,
+        // pero los permisos de edición siguen limitados a sus propios registros.
+        canViewBookingInCalendar(item) {
+          const role = this.currentUser?.role;
+          if (!item || !role) return false;
+          if (role === 'student') return this.ownsIA(item);
+          if (role === 'teacher') return true;
+          return ['admin', 'superadmin'].includes(role);
+        },
+
         localStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); },
 
         get focusDateObj() { return new Date(this.focusDate + 'T00:00:00'); },
@@ -5048,7 +5058,7 @@ cfgApplyPreset(c, p) {
               const d = new Date(cur); d.setDate(d.getDate() + i);
               const s = this.localStr(d);
               cells.push({ key: s, dateStr: s, day: d.getDate(), inMonth: d.getMonth() === m, isToday: s === today,
-                items: this.bookings.filter(b => b.date === s && this.canViewBooking(b) && (this.selectedLabFilter === 'ALL' || b.labType === this.selectedLabFilter)) });
+                items: this.bookings.filter(b => b.date === s && this.canViewBookingInCalendar(b) && (this.selectedLabFilter === 'ALL' || b.labType === this.selectedLabFilter)) });
             }
             cur.setDate(cur.getDate() + 7);
           }
@@ -5113,7 +5123,7 @@ cfgApplyPreset(c, p) {
 
         getBookingsForSlot(dateStr, period) {
           return this.bookings.filter(b => {
-            if (b.date !== dateStr || !this.canViewBooking(b)) return false;
+            if (b.date !== dateStr || !this.canViewBookingInCalendar(b)) return false;
             if (this.selectedLabFilter !== 'ALL' && b.labType !== this.selectedLabFilter) return false;
             const startP = parseInt(b.startPeriod);
             const durP = parseInt(b.durationPeriods);
@@ -5123,7 +5133,7 @@ cfgApplyPreset(c, p) {
         },
 
         get filteredListBookings() {
-          const okLab = b => this.canViewBooking(b) && (this.selectedLabFilter === 'ALL' || b.labType === this.selectedLabFilter);
+          const okLab = b => this.canViewBookingInCalendar(b) && (this.selectedLabFilter === 'ALL' || b.labType === this.selectedLabFilter);
           if (this.calendarMode === 'month') return this.bookings.filter(b => b.date.startsWith(this.focusDate.slice(0, 7)) && okLab(b));
           const days = this.visibleDays.map(d => d.dateStr);
           return this.bookings.filter(b => days.includes(b.date) && okLab(b));
